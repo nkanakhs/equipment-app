@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Μεμονωμένες Χρεώσεις
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+
+
+
+<link rel="stylesheet" href="/static/css/history_individual-1.css">
+
+</head>
+
+<body>
+
+<div class="app-container">
+
+    {% set active_page = "history" %}
+    {% include "_sidebar.html" %}
+
+    <main class="main-content history-page">
+
+        <header class="topbar history-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Ιστορικό Κινήσεων
+                </div>
+
+                <h1>
+                    Μεμονωμένες Χρεώσεις
+                </h1>
+
+                <p>
+                    Ιστορικό χρεώσεων και επιστροφών μεμονωμένου εξοπλισμού
+                </p>
+
+            </div>
+
+            <div class="topbar-actions">
+
+                <a
+                    class="secondary-button"
+                    href="/checkout-return"
+                >
+                    Χρέωση / Επιστροφή
+                </a>
+
+                <button
+                    class="primary-button"
+                    type="button"
+                    id="historyExportToggle"
+                    onclick="toggleHistoryExportMode()"
+                >
+                    Export
+                </button>
+
+            </div>
+
+        </header>
+
+        <nav class="history-section-tabs">
+
+            <a
+                class="history-section-tab"
+                href="/history/missions"
+            >
+                Εκτός Έδρας Χρεώσεις
+            </a>
+
+            <a
+                class="history-section-tab active"
+                href="/history/individual"
+            >
+                Μεμονωμένες Χρεώσεις
+            </a>
+
+        </nav>
+
+        <section class="panel history-filter-panel">
+
+            <form
+                class="history-filter-form history-filter-form-individual"
+                method="get"
+                action="/history/individual"
+            >
+
+                <div class="history-filter-field">
+
+                    <label for="historyYear">
+                        Χρονολογικό Έτος
+                    </label>
+
+                    <select
+                        id="historyYear"
+                        name="year"
+                    >
+
+                        <option value="">
+                            Όλα τα Έτη
+                        </option>
+
+                        {% for item in years %}
+
+                            <option
+                                value="{{ item['year_value'] }}"
+                                {% if selected_year == item['year_value'] %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item["year_value"] }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="history-filter-actions">
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                    >
+                        Εφαρμογή
+                    </button>
+
+                    <a
+                        class="secondary-button"
+                        href="/history/individual"
+                    >
+                        Καθαρισμός
+                    </a>
+
+                </div>
+
+            </form>
+
+        </section>
+        {% if selected_year %}
+            <div class="active-filter-strip">
+                <strong>Ενεργό φίλτρο:</strong>
+                <span class="active-filter-chip">{{ selected_year }}</span>
+                <a class="active-filter-clear" href="/history/individual">Καθαρισμός</a>
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            action="/history/export-selected"
+            id="historyExportForm"
+        >
+
+            <section class="panel history-table-panel">
+
+                <div class="panel-header history-uniform-header">
+
+                    <div>
+
+                        <h2>
+                            Κινήσεις Εξοπλισμού
+                        </h2>
+
+                        <p>
+                            {{ total_count }} εγγραφές με τα επιλεγμένα φίλτρα
+                        </p>
+
+                    </div>
+
+                    <div class="mission-history-count">
+                        {{ total_count }} χρεώσεις
+                    </div>
+
+                </div>
+
+                {% if history %}
+
+                    <div class="table-container history-table-container">
+
+                        <table class="history-table individual-history-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th class="history-export-column">
+                                        Επιλογή
+                                    </th>
+
+                                    <th>
+                                        Εξοπλισμός
+                                    </th>
+
+                                    <th>
+                                        Αρ. Μητρώου ΔΕΗ
+                                    </th>
+
+                                    <th>
+                                        Ομάδα Μετρήσεων
+                                    </th>
+
+                                    <th>
+                                        Ημ/νία Χρέωσης
+                                    </th>
+
+                                    <th>
+                                        Ημ/νία Επιστροφής
+                                    </th>
+
+                                    <th>
+                                        Κατάσταση
+                                    </th>
+
+                                    <th class="return-comment-col" title="Σχόλιο Επιστροφής">
+                                        Σχόλιο
+                                    </th>
+
+                                    <th>
+                                        Ενέργεια
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for loan in history %}
+
+                                    <tr class="history-row">
+
+                                        <td class="history-export-column">
+
+                                            <input
+                                                class="history-export-checkbox"
+                                                type="checkbox"
+                                                name="selected_items"
+                                                value="loan:{{ loan['id'] }}"
+                                                onchange="updateHistoryExportCount()"
+                                            >
+
+                                        </td>
+
+                                        <td>
+
+                                            <div class="history-equipment-cell">
+
+                                                <strong>
+                                                    {{ loan["description"] }}
+                                                </strong>
+
+                                                <span>
+                                                    {{ loan["manufacturer"] or "—" }}
+                                                    {% if loan["model"] %}
+                                                        · {{ loan["model"] }}
+                                                    {% endif %}
+                                                </span>
+
+                                            </div>
+
+                                        </td>
+
+                                        <td>
+                                            {{ loan["dei_registry_number"] or "—" }}
+                                        </td>
+
+                                        <td>
+                                            <strong class="history-team">
+                                                {{ loan["borrower_name"] or "—" }}
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            <span class="history-date">
+                                                {{ loan["checkout_date"]|date_gr }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <span class="history-date">
+                                                {{ loan["return_date"]|date_gr }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+
+                                            {% if loan["active"] == 1 %}
+
+                                                <span class="status usage">
+                                                    Σε Χρήση
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="status returned-status">
+                                                    Επεστράφη
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+                                        <td class="return-comment-action">
+                                            {% if loan["return_notes"] %}
+                                                <button
+                                                    type="button"
+                                                    class="return-comment-button"
+                                                    data-return-comment="{{ loan['return_notes']|e }}"
+                                                    onclick="openReturnComment(this)"
+                                                    title="Προβολή σχολίου επιστροφής" aria-label="Προβολή σχολίου επιστροφής">
+                                                    <svg class="return-comment-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M12 5C6.5 5 2.2 9.2 1 12c1.2 2.8 5.5 7 11 7s9.8-4.2 11-7c-1.2-2.8-5.5-7-11-7Zm0 11.2A4.2 4.2 0 1 1 12 7.8a4.2 4.2 0 0 1 0 8.4Zm0-2.2A2 2 0 1 0 12 10a2 2 0 0 0 0 4Z"/>
+                                                    </svg>
+                                                </button>
+                                            {% else %}
+                                                <span class="return-comment-empty">—</span>
+                                            {% endif %}
+                                        </td>
+
+
+
+                                        <td>
+
+                                            <form
+                                                method="post"
+                                                action="/loans/{{ loan['id'] }}/delete"
+                                                onsubmit="return confirm('Να διαγραφεί οριστικά αυτή η κίνηση από το ιστορικό;');"
+                                            >
+
+                                                <button
+                                                    class="history-delete-button"
+                                                    type="submit"
+                                                >
+                                                    Διαγραφή
+                                                </button>
+
+                                            </form>
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="history-empty-state">
+
+                        <h3>
+                            Δεν βρέθηκαν κινήσεις
+                        </h3>
+
+                        <p>
+                            Δεν υπάρχουν μεμονωμένες χρεώσεις για το επιλεγμένο έτος.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+            {% if total_pages > 1 %}
+                <nav class="app-pagination history-pagination">
+                    <span class="app-pagination-summary">
+                        Σελίδα {{ page }} από {{ total_pages }} · {{ total_count }} εγγραφές
+                    </span>
+                    <div class="app-pagination-buttons">
+                        {% if page > 1 %}
+                            <a class="secondary-button pagination-button"
+                               href="{{ request.url.include_query_params(page=page-1) }}">← Προηγούμενη</a>
+                        {% endif %}
+                        {% for page_number in range(1, total_pages + 1) %}
+                            {% if page_number == 1 or page_number == total_pages or (page_number >= page - 2 and page_number <= page + 2) %}
+                                <a class="pagination-number {% if page_number == page %}active{% endif %}"
+                                   href="{{ request.url.include_query_params(page=page_number) }}">{{ page_number }}</a>
+                            {% elif page_number == page - 3 or page_number == page + 3 %}
+                                <span class="pagination-ellipsis">…</span>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page < total_pages %}
+                            <a class="secondary-button pagination-button"
+                               href="{{ request.url.include_query_params(page=page+1) }}">Επόμενη →</a>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+
+            <div
+                class="history-export-bar"
+                id="historyExportBar"
+                style="display: none;"
+            >
+
+                <div>
+
+                    <strong id="historyExportCount">
+                        0 επιλεγμένες
+                    </strong>
+
+                    <span>
+                        Επιλέξτε μία ή περισσότερες κινήσεις για εξαγωγή.
+                    </span>
+
+                </div>
+
+                <div class="history-export-actions">
+
+                    <button
+                        class="secondary-button"
+                        type="button"
+                        onclick="cancelHistoryExport()"
+                    >
+                        Ακύρωση
+                    </button>
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                        id="historyExportSubmit"
+                        disabled
+                    >
+                        Εξαγωγή Επιλεγμένων
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </main>
+
+</div>
+
+
+<script src="/static/js/history_individual-1.js"></script>
+
+
+
+<div id="returnCommentModal" class="return-comment-modal" onclick="closeReturnComment(event)">
+    <div class="return-comment-dialog" role="dialog" aria-modal="true" aria-labelledby="returnCommentTitle" onclick="event.stopPropagation()">
+        <h3 id="returnCommentTitle">Παρατήρηση Επιστροφής</h3>
+        <div id="returnCommentText" class="return-comment-text"></div>
+        <button type="button" class="return-comment-close" onclick="closeReturnComment()">Κλείσιμο</button>
+    </div>
+</div>
+
+<script src="/static/js/history_individual-2.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Εξοπλισμός
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+
+<link rel="stylesheet" href="/static/css/equipment-1.css">
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "equipment" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content equipment-workspace-page">
+
+
+        <header class="topbar equipment-workspace-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Εξοπλισμός
+                </div>
+
+                <h1>
+                    Εξοπλισμός
+                </h1>
+
+                <p>
+                    Καταχωρισμένος εξοπλισμός της βιβλιοθήκης
+                </p>
+
+            </div>
+
+
+            <div class="equipment-topbar-actions">
+
+                <a
+                    class="equipment-picking-button"
+                    href="/picking-lists"
+                >
+                    Picking List
+                </a>
+
+                <form
+                    class="equipment-export-form"
+                    method="get"
+                    action="/exports/equipment-filtered"
+                >
+                    <button
+                        class="secondary-button equipment-export-button"
+                        type="submit"
+                    >
+                        Export Εξοπλισμού
+                    </button>
+                </form>
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<a
+                    class="primary-button equipment-add-button"
+                    href="/equipment/new"
+                >
+                    <span class="button-plus">+</span>
+                    Νέα Καταχώριση
+                </a>{% endif %}
+
+            </div>
+
+        </header>
+
+
+        <section class="equipment-filter-card">
+
+            <form
+                method="get"
+                action="/equipment"
+                class="equipment-filter-form"
+            >
+
+                <div class="equipment-filter-search">
+
+                    <span class="search-icon">
+                        ⌕
+                    </span>
+
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ q }}"
+                        placeholder="Αναζήτηση με κωδικό, περιγραφή, κατασκευαστή, μοντέλο, serial..."
+                    >
+
+                </div>
+
+
+                <div class="equipment-filter-grid">
+
+
+                    <div class="equipment-filter-field">
+
+                        <label>
+                            Κατηγορία
+                        </label>
+
+                        <select name="category">
+
+                            <option value="">
+                                Όλες
+                            </option>
+
+                            {% for row in categories %}
+
+                                <option
+                                    value="{{ row['category'] }}"
+                                    {% if category == row["category"] %}selected{% endif %}
+                                >
+                                    {{ row["category"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="equipment-filter-field">
+
+                        <label>
+                            Κατασκευαστής
+                        </label>
+
+                        <select name="manufacturer">
+
+                            <option value="">
+                                Όλοι
+                            </option>
+
+                            {% for row in manufacturers %}
+
+                                <option
+                                    value="{{ row['manufacturer'] }}"
+                                    {% if manufacturer == row["manufacturer"] %}selected{% endif %}
+                                >
+                                    {{ row["manufacturer"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="equipment-filter-field">
+
+                        <label>
+                            Κατάσταση
+                        </label>
+
+                        <select name="equipment_status">
+
+                            <option value="">
+                                Όλες
+                            </option>
+
+                            {% for row in statuses %}
+
+                                <option
+                                    value="{{ row['status'] }}"
+                                    {% if equipment_status == row["status"] %}selected{% endif %}
+                                >
+                                    {{ row["status"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="equipment-filter-field equipment-filter-location">
+
+                        <label>
+                            Θέση
+                        </label>
+
+                        <select name="location_filter">
+
+                            <option value="">
+                                Όλες
+                            </option>
+
+                            {% for row in locations %}
+
+                                <option
+                                    value="{{ row['location'] }}"
+                                    {% if location_filter == row["location"] %}selected{% endif %}
+                                >
+                                    {{ row["location"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="equipment-filter-buttons">
+
+                        <button
+                            class="primary-button"
+                            type="submit"
+                        >
+                            Εφαρμογή
+                        </button>
+
+                        <a
+                            class="secondary-button"
+                            href="/equipment"
+                        >
+                            Καθαρισμός
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        {% if equipment %}
+
+
+        <section class="equipment-workspace">
+
+
+            <section class="equipment-browser-card">
+
+                <div class="equipment-browser-head">
+
+                    <div>
+
+                        <h2>
+                            Λίστα Εξοπλισμού
+                        </h2>
+
+                        <p>
+                            Επιλέξτε μία καταχώριση για προβολή στοιχείων
+                        </p>
+
+                    </div>
+
+                    <span class="equipment-browser-count">
+                        {{ total_count }}
+                    </span>
+
+                </div>
+
+
+                <div class="equipment-browser-table-wrap">
+
+                    <table class="equipment-browser-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Εξοπλισμός
+                                </th>
+
+                                <th>
+                                    Κατασκευαστής
+                                </th>
+
+                                <th>
+                                    Μοντέλο
+                                </th>
+
+                                <th>
+                                    Ποσότητα
+                                </th>
+
+                                <th>
+                                    Κατάσταση
+                                </th>
+
+                                <th>
+                                    Θέση
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                        {% for item in equipment %}
+
+                            <tr
+                                class="equipment-browser-row {% if item['id'] == selected_id %}selected{% endif %}"
+                                data-id="{{ item['id'] }}"
+                                tabindex="0"
+                            >
+
+                                <td>
+
+                                    <div class="equipment-browser-name">
+
+                                        <div class="equipment-browser-thumb">
+
+                                            {% if item["equipment_photo"] %}
+
+                                                <img
+                                                    src="/uploads/equipment/{{ item['equipment_photo'] }}"
+                                                    alt="{{ item['description'] }}">
+
+                                            {% else %}
+
+                                                <span>
+                                                    {{ item["description"][:1]|upper }}
+                                                </span>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong>
+                                                {{ item["description"] }}
+                                            </strong>
+
+                                            <span>
+                                                {{ item["code"] }}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    {{ item["manufacturer"] or "—" }}
+                                </td>
+
+                                <td>
+                                    {{ item["model"] or "—" }}
+                                </td>
+
+                                <td>
+                                    {{ item["quantity"] or 1 }}
+                                </td>
+
+                                <td>
+
+                                    {% if item["status"] == "Διαθέσιμο" %}
+
+                                        <span class="status available">
+                                            Διαθέσιμο
+                                        </span>
+
+                                    {% elif item["status"] == "Σε Χρήση" %}
+
+                                        <span class="status usage">
+                                            Σε Χρήση
+                                        </span>
+
+                                    {% elif item["status"] == "Σε Αποστολή" %}
+
+                                        <span class="status on-mission">
+                                            Σε Αποστολή
+                                        </span>
+
+                                    {% elif item["status"] == "Σε Συντήρηση" %}
+
+                                        <span class="status service">
+                                            Σε Συντήρηση
+                                        </span>
+
+                                    {% elif item["status"] == "Εκτός Λειτουργίας" %}
+
+                                        <span class="status out-of-service">
+                                            Εκτός Λειτουργίας
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status">
+                                            {{ item["status"] or "—" }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if item["dexion"] or item["shelf"] or item["storage_column"] %}
+
+                                        <div class="equipment-browser-location">
+
+                                            {% if item["dexion"] %}
+                                                <span>Dexion {{ item["dexion"] }}</span>
+                                            {% endif %}
+
+                                            {% if item["shelf"] %}
+                                                <span>Ράφι {{ item["shelf"] }}</span>
+                                            {% endif %}
+
+                                            {% if item["storage_column"] %}
+                                                <span>Στήλη {{ item["storage_column"] }}</span>
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% else %}
+
+                                        {{ item["location"] or "—" }}
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <aside class="equipment-inspector" id="equipmentInspector">
+
+                <div class="equipment-inspector-content" id="inspectorContent">
+
+
+                    <div class="equipment-inspector-head">
+
+                        <div>
+
+                            <h2>
+                                Στοιχεία Εξοπλισμού
+                            </h2>
+
+                            <p id="inspectorHeaderSubtext">
+                                Επιλεγμένη καταχώριση
+                            </p>
+
+                        </div>
+
+
+                        <div class="equipment-inspector-head-actions">
+
+                            <a
+                                class="equipment-inspector-edit"
+                                id="inspectorEdit"
+                                href="#"
+                            >
+                                Επεξεργασία
+                            </a>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="equipment-inspector-gallery">
+
+                        <div class="equipment-inspector-main-photo">
+
+                            <img
+                                id="inspectorMainPhoto"
+                                alt=""
+                                title="Μεγέθυνση φωτογραφίας"
+                                style="cursor: zoom-in;"
+                            >
+
+                            <div
+                                class="equipment-inspector-no-photo"
+                                id="inspectorNoPhoto"
+                            >
+                                Δεν έχει καταχωριστεί φωτογραφία
+                            </div>
+
+                        </div>
+
+
+                        <div class="equipment-inspector-thumbs">
+
+                            <button
+                                type="button"
+                                class="equipment-inspector-thumb active"
+                                id="equipmentPhotoButton"
+                            >
+                                <img
+                                    id="equipmentPhotoThumb"
+                                    alt=""
+                                >
+                                <span>
+                                    Εξοπλισμός
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="equipment-inspector-thumb"
+                                id="locationPhotoButton"
+                            >
+                                <img
+                                    id="locationPhotoThumb"
+                                    alt=""
+                                >
+                                <span>
+                                    Θέση
+                                </span>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="equipment-inspector-identity">
+
+                        <div>
+
+                            <span
+                                class="equipment-inspector-code"
+                                id="inspectorCode"
+                            ></span>
+
+                            <h3 id="inspectorTitle"></h3>
+
+                            <p id="inspectorSubtitle"></p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="equipment-inspector-status-row">
+
+                        <span>
+                            Κατάσταση
+                        </span>
+
+                        <span id="inspectorStatus"></span>
+
+                    </div>
+
+
+                    <section class="equipment-inspector-section">
+
+                        <dl class="equipment-inspector-grid">
+
+                            <div>
+                                <dt>Κωδικός</dt>
+                                <dd id="detailCode">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Περιγραφή</dt>
+                                <dd id="detailDescription">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Κατασκευαστής</dt>
+                                <dd id="detailManufacturer">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Μοντέλο</dt>
+                                <dd id="detailModel">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Serial Number</dt>
+                                <dd id="detailSerial">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Κατηγορία</dt>
+                                <dd id="detailCategory">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Αρ. Μητρώου ΔΕΗ</dt>
+                                <dd id="detailDei">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Εσωτερικός Κωδικός ΤΕΜ</dt>
+                                <dd id="detailTem">—</dd>
+                            </div>
+
+                            <div>
+                                <dt>Ποσότητα</dt>
+                                <dd id="detailQuantity">1</dd>
+                            </div>
+
+                            <div class="equipment-inspector-full-row">
+                                <dt>Θέση Αποθήκευσης</dt>
+                                <dd id="detailLocation">—</dd>
+                            </div>
+
+                            <div class="equipment-inspector-full-row">
+                                <dt>Παρατηρήσεις</dt>
+                                <dd id="detailNotes">—</dd>
+                            </div>
+
+                            <div class="equipment-inspector-full-row">
+                                <dt>Εναλλακτικές</dt>
+                                <dd id="detailAlternatives">—</dd>
+                            </div>
+
+                        </dl>
+
+                    </section>
+
+
+
+                    <a
+                        class="equipment-full-card-link"
+                        id="fullCardLink"
+                        href="#"
+                    >
+                        Άνοιγμα πλήρους καρτέλας
+                    </a>
+
+
+                </div>
+
+            </aside>
+
+
+        </section>
+
+
+        {% else %}
+
+
+        <section class="equipment-empty-card">
+
+            <h2>
+                Δεν βρέθηκε εξοπλισμός
+            </h2>
+
+            <p>
+                Δοκιμάστε διαφορετικά φίλτρα ή δημιουργήστε νέα καταχώριση.
+            </p>
+
+        </section>
+
+
+        {% endif %}
+
+
+    </main>
+
+</div>
+
+
+<script src="/static/js/equipment-1.js"></script>
+
+
+<div id="equipmentHelperLightbox" class="equipment-helper-lightbox" onclick="closeEquipmentHelperLightbox(event)">
+    <div class="equipment-helper-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Μεγέθυνση φωτογραφίας" onclick="event.stopPropagation()">
+        <button type="button" class="equipment-helper-lightbox-close" onclick="closeEquipmentHelperLightbox()" aria-label="Κλείσιμο">×</button>
+        <img id="equipmentHelperLightboxImage" class="equipment-helper-lightbox-image" src="" alt="Μεγέθυνση φωτογραφίας">
+    </div>
+</div>
+
+<script src="/static/js/equipment-2.js"></script>
+
+
+<div class="alternative-inspector-modal" id="alternativeInspectorModal" aria-hidden="true">
+    <div class="alternative-inspector-dialog">
+        <button type="button" class="equipment-lightbox-close" id="alternativeInspectorClose">×</button>
+        <div id="alternativeInspectorContent" class="alternative-inspector-content"></div>
+    </div>
+</div>
+<script src="/static/js/equipment-3.js"></script>
+
+</body>
+
+</html>

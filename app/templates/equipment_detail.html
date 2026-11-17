@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ item["description"] }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+
+<link rel="stylesheet" href="/static/css/equipment_detail-1.css">
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "equipment" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content equipment-detail-page">
+
+
+        <header class="topbar equipment-detail-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Εξοπλισμός / {{ item["code"] }}
+                </div>
+
+                <h1>
+                    {{ item["description"] }}
+                </h1>
+
+                <p>
+                    Αναλυτική καρτέλα εξοπλισμού
+                </p>
+
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <a
+                    class="secondary-button"
+                    href="/equipment"
+                >
+                    ← Επιστροφή
+                </a>
+
+                <a class="secondary-button" href="#alternatives">Εναλλακτική</a>
+
+                {% if request.state.current_user["role"] == "ADMIN" %}<a
+                    class="primary-button"
+                    href="/equipment/{{ item['id'] }}/edit"
+                >
+                    Επεξεργασία
+                </a>{% endif %}
+
+            </div>
+
+        </header>
+
+
+        <section class="asset-hero-card">
+
+            <div class="asset-hero-main">
+
+                <div class="asset-code-badge">
+                    {{ item["code"] }}
+                </div>
+
+                <div>
+
+                    <h2>
+                        {{ item["manufacturer"] or "Χωρίς κατασκευαστή" }}
+                        {% if item["model"] %}
+                            <span>{{ item["model"] }}</span>
+                        {% endif %}
+                    </h2>
+
+                    <p>
+                        {{ item["category"] or "Χωρίς Κατηγορία" }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="asset-status-area">
+
+                {% if item["status"] == "Διαθέσιμο" %}
+
+                    <span class="status large-status available">
+                        Διαθέσιμο
+                    </span>
+
+                {% elif item["status"] == "Σε Χρήση" %}
+
+                    <span class="status large-status usage">
+                        Σε Χρήση
+                    </span>
+
+                {% elif item["status"] == "Σε Αποστολή" %}
+
+                    <span class="status large-status on-mission">
+                        Σε Αποστολή
+                    </span>
+
+                {% elif item["status"] == "Σε Συντήρηση" %}
+
+                    <span class="status large-status service">
+                        Σε Συντήρηση
+                    </span>
+
+                {% elif item["status"] == "Εκτός Λειτουργίας" %}
+
+                    <span class="status large-status out-of-service">
+                        Εκτός Λειτουργίας
+                    </span>
+
+                {% else %}
+
+                    <span class="status large-status neutral-status">
+                        {{ item["status"] or "—" }}
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <section class="asset-overview-grid">
+
+
+            <div class="asset-photo-panel">
+
+                <div class="asset-panel-title">
+                    <h2>Φωτογραφία Εξοπλισμού</h2>
+                </div>
+
+                {% if item["equipment_photo"] %}
+
+                    <div class="asset-photo-frame">
+
+                        <img
+                            src="/uploads/equipment/{{ item['equipment_photo'] }}"
+                            alt="Φωτογραφία εξοπλισμού"
+                         class="equipment-lightbox-trigger" onclick="openEquipmentLightbox(this.src, this.alt || 'Φωτογραφία Εξοπλισμού')" title="Μεγέθυνση φωτογραφίας">
+
+                    </div>
+
+                {% else %}
+
+                    <div class="asset-photo-empty">
+
+                        <div class="asset-photo-empty-icon">
+                            EQ
+                        </div>
+
+                        <strong>
+                            Δεν υπάρχει φωτογραφία εξοπλισμού
+                        </strong>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="asset-info-panel">
+
+                <div class="asset-panel-title">
+
+                    <div>
+
+                        <h2>
+                            Βασικά Στοιχεία
+                        </h2>
+
+                        <p>
+                            Κύρια στοιχεία ταυτοποίησης
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="asset-info-list">
+
+                    <div class="asset-info-row">
+                        <span>Περιγραφή</span>
+                        <strong>{{ item["description"] }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Κατασκευαστής</span>
+                        <strong>{{ item["manufacturer"] or "—" }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Μοντέλο</span>
+                        <strong>{{ item["model"] or "—" }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Serial Number</span>
+                        <strong class="mono-value">{{ item["serial_number"] or "—" }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Αρ. Μητρώου ΔΕΗ</span>
+                        <strong>{{ item["dei_registry_number"] or "—" }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Εσωτερικός Κωδικός ΤΕΜ</span>
+                        <strong>{{ item["tem_internal_code"] or "—" }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Κατηγορία</span>
+                        <strong>{{ item["category"] or "—" }}</strong>
+                    </div>
+
+                    <div class="asset-info-row">
+                        <span>Ποσότητα</span>
+                        <strong>{{ item["quantity"] or 1 }}</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <section class="asset-secondary-grid">
+
+
+            <div class="asset-location-panel">
+
+                <div class="asset-panel-title">
+
+                    <div>
+
+                        <h2>
+                            Θέση Αποθήκευσης
+                        </h2>
+
+                        <p>
+                            Φυσική θέση του εξοπλισμού στη βιβλιοθήκη
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="asset-location-summary">
+
+                    <div class="location-chip-block">
+
+                        <span>Dexion</span>
+                        <strong>{{ item["dexion"] or "—" }}</strong>
+
+                    </div>
+
+                    <div class="location-chip-block">
+
+                        <span>Ράφι</span>
+                        <strong>{{ item["shelf"] or "—" }}</strong>
+
+                    </div>
+
+                    <div class="location-chip-block">
+
+                        <span>Στήλη</span>
+                        <strong>{{ item["storage_column"] or "—" }}</strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="asset-full-location">
+
+                    <span>
+                        Πλήρης Θέση
+                    </span>
+
+                    <strong>
+
+                        {% if item["dexion"] or item["shelf"] or item["storage_column"] %}
+
+                            {% if item["dexion"] %}
+                                Dexion {{ item["dexion"] }}
+                            {% endif %}
+
+                            {% if item["shelf"] %}
+                                / Ράφι {{ item["shelf"] }}
+                            {% endif %}
+
+                            {% if item["storage_column"] %}
+                                / Στήλη {{ item["storage_column"] }}
+                            {% endif %}
+
+                        {% else %}
+
+                            {{ item["location"] or "—" }}
+
+                        {% endif %}
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="asset-location-photo-panel">
+
+                <div class="asset-panel-title">
+                    <h2>Φωτογραφία Θέσης</h2>
+                </div>
+
+                {% if item["location_photo"] %}
+
+                    <div class="asset-location-photo-frame">
+
+                        <img
+                            src="/uploads/locations/{{ item['location_photo'] }}"
+                            alt="Φωτογραφία θέσης αποθήκευσης"
+                         class="equipment-lightbox-trigger" onclick="openEquipmentLightbox(this.src, this.alt || 'Φωτογραφία Εξοπλισμού')" title="Μεγέθυνση φωτογραφίας">
+
+                    </div>
+
+                {% else %}
+
+                    <div class="asset-photo-empty compact-empty">
+
+                        <div class="asset-photo-empty-icon">
+                            LOC
+                        </div>
+
+                        <strong>
+                            Δεν υπάρχει φωτογραφία θέσης
+                        </strong>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+        </section>
+
+
+        <section class="panel asset-notes-panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Παρατηρήσεις
+                    </h2>
+
+                    <p>
+                        Συμπληρωματικές πληροφορίες για τον εξοπλισμό
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            {% if item["notes"] %}
+
+                <p class="asset-notes-text">
+                    {{ item["notes"] }}
+                </p>
+
+            {% else %}
+
+                <p class="asset-notes-empty">
+                    Δεν υπάρχουν καταχωρισμένες παρατηρήσεις.
+                </p>
+
+            {% endif %}
+
+        </section>
+
+
+        <section class="asset-detail-two-column">
+
+            <div class="panel asset-documents-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Έγγραφα PDF
+                        </h2>
+
+                        <p>
+                            Συνημμένα έγγραφα της συγκεκριμένης καταχώρισης
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% if documents %}
+
+                    <div class="full-detail-document-list">
+
+                        {% for document in documents %}
+
+                            <a
+                                class="full-detail-document-item"
+                                href="/uploads/documents/{{ document['stored_name'] }}"
+                                target="_blank"
+                                rel="noopener"
+                            >
+
+                                <span class="equipment-pdf-badge">
+                                    PDF
+                                </span>
+
+                                <span class="full-detail-document-name">
+                                    {{ document["original_name"] }}
+                                </span>
+
+                                <span class="full-detail-document-open">
+                                    Άνοιγμα
+                                </span>
+
+                            </a>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p class="asset-detail-empty">
+                        Δεν υπάρχουν PDF για αυτή την καταχώριση.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="panel asset-movement-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Ιστορικό Κινήσεων
+                        </h2>
+
+                        <p>
+                            Χρεώσεις και επιστροφές του συγκεκριμένου εξοπλισμού
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% if movement_history %}
+
+                    <div class="full-detail-movement-list">
+
+                        {% for movement in movement_history %}
+
+                            <div class="full-detail-movement-item">
+
+                                <div>
+
+                                    <strong>
+                                        {{ movement["type"] }}
+                                    </strong>
+
+                                    <span>
+                                        {% if movement["team"] %}
+                                            {{ movement["team"] }}
+                                        {% endif %}
+
+                                        {% if movement["unit"] %}
+                                            {% if movement["team"] %} · {% endif %}
+                                            {{ movement["unit"] }}
+                                        {% endif %}
+                                    </span>
+
+                                    {% if movement["notes"] %}
+
+                                        <small>
+                                            {{ movement["notes"] }}
+                                        </small>
+
+                                    {% endif %}
+
+                                </div>
+
+                                <time>
+                                    {{ movement["date"] or "—" }}
+                                </time>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p class="asset-detail-empty">
+                        Δεν υπάρχουν καταχωρισμένες κινήσεις.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+    
+        <section class="panel equipment-alternatives-panel" id="alternatives">
+            <div class="panel-header">
+                <div>
+                    <span class="form-section-kicker">SUBSTITUTE EQUIPMENT</span>
+                    <h2>Εναλλακτικός / Υποκατάστατος Εξοπλισμός</h2>
+                    <p>Δηλώστε έναν ή περισσότερους υποκατάστατους εξοπλισμούς με Κωδικό, Αρ. Μητρώου ΔΕΗ ή Εσωτερικό Κωδικό ΤΕΜ.</p>
+                </div>
+            </div>
+
+            <form class="alternative-add-form" method="post" action="/equipment/{{ item['id'] }}/alternatives/add">
+                <div class="form-field">
+                    <label>Αναγνωριστικό εναλλακτικής</label>
+                    <input type="text" name="identifier" required placeholder="π.χ. EQ-017 / ΑΜ ΔΕΗ / Κωδικός ΤΕΜ">
+                </div>
+                <button class="primary-button" type="submit">Προσθήκη Εναλλακτικής</button>
+            </form>
+
+            {% if alternatives %}
+            <div class="alternative-card-list">
+                {% for alt in alternatives %}
+                <div class="alternative-card">
+                    <div>
+                        <span class="alternative-priority">{{ loop.index }}η επιλογή</span>
+                        <strong>{{ alt['code'] }} — {{ alt['description'] }}</strong>
+                        <small>{{ alt['manufacturer'] or '' }} {{ alt['model'] or '' }} · {{ alt['status'] }}</small>
+                    </div>
+                    <div class="alternative-card-actions">
+                        <a class="secondary-button compact-button" href="/equipment/{{ alt['id'] }}">Προβολή</a>
+                        <form method="post" action="/equipment/{{ item['id'] }}/alternatives/{{ alt['relation_id'] }}/delete">
+                            <button class="mission-row-button danger" type="submit">Αφαίρεση</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="equipment-empty-card compact-empty-card">Δεν έχει οριστεί εναλλακτικός εξοπλισμός.</div>
+            {% endif %}
+        </section>
+</main>
+
+</div>
+
+
+<div id="equipmentLightbox" class="equipment-lightbox" onclick="closeEquipmentLightbox(event)">
+    <div class="equipment-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Μεγέθυνση φωτογραφίας" onclick="event.stopPropagation()">
+        <button type="button" class="equipment-lightbox-close" onclick="closeEquipmentLightbox()" aria-label="Κλείσιμο">×</button>
+        <img id="equipmentLightboxImage" class="equipment-lightbox-image" src="" alt="Μεγέθυνση φωτογραφίας">
+    </div>
+</div>
+
+<script src="/static/js/equipment_detail-1.js"></script>
+
+</body>
+
+</html>

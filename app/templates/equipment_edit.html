@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Επεξεργασία Εξοπλισμού</title>
+    <link rel="stylesheet" href="/static/style.css?v=1600">
+</head>
+<body>
+<div class="app-container">
+
+    {% set active_page = "equipment" %}
+    {% include "_sidebar.html" %}
+
+    <main class="main-content equipment-form-page">
+
+        <header class="topbar equipment-form-topbar">
+            <div>
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / {{ item["code"] }} / Επεξεργασία
+                </div>
+                <h1>Επεξεργασία Εξοπλισμού</h1>
+                <p>Ενημέρωση στοιχείων της καταχώρισης</p>
+            </div>
+
+            <a class="secondary-button" href="/equipment/{{ item['id'] }}">
+                ← Επιστροφή στην Καρτέλα
+            </a>
+        </header>
+
+        <section class="edit-record-summary">
+            <div>
+                <span class="edit-record-code">{{ item["code"] }}</span>
+
+                <div>
+                    <strong>{{ item["description"] }}</strong>
+                    <span>
+                        {{ item["manufacturer"] or "—" }}
+                        {% if item["model"] %} · {{ item["model"] }}{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if item["status"] == "Διαθέσιμο" %}
+                <span class="status available">Διαθέσιμο</span>
+            {% elif item["status"] == "Σε Χρήση" %}
+                <span class="status usage">Σε Χρήση</span>
+            {% elif item["status"] == "Σε Συντήρηση" %}
+                <span class="status service">Σε Συντήρηση</span>
+            {% elif item["status"] == "Εκτός Λειτουργίας" %}
+                <span class="status out-of-service">Εκτός Λειτουργίας</span>
+            {% else %}
+                <span class="status neutral-status">{{ item["status"] or "—" }}</span>
+            {% endif %}
+        </section>
+
+        <form
+            method="post"
+            action="/equipment/{{ item['id'] }}/edit"
+            enctype="multipart/form-data"
+            class="modern-equipment-form"
+        >
+
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div>
+                        <span class="form-section-kicker">01</span>
+                        <h2>Στοιχεία Ταυτοποίησης</h2>
+                        <p>Τροποποίηση βασικών στοιχείων του εξοπλισμού</p>
+                    </div>
+                </div>
+
+                <div class="modern-form-grid">
+
+                    <div class="form-field form-field-wide">
+                        <label>Περιγραφή *</label>
+                        <input type="text" name="description" value="{{ item['description'] }}" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Κατασκευαστής</label>
+                        <input type="text" name="manufacturer" value="{{ item['manufacturer'] or '' }}">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Μοντέλο</label>
+                        <input type="text" name="model" value="{{ item['model'] or '' }}">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Serial Number</label>
+                        <input type="text" name="serial_number" value="{{ item['serial_number'] or '' }}">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Αριθμός Μητρώου ΔΕΗ</label>
+                        <input type="text" name="dei_registry_number" value="{{ item['dei_registry_number'] or '' }}">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Εσωτερικός Κωδικός ΤΕΜ</label>
+                        <input type="text" name="tem_internal_code" value="{{ item['tem_internal_code'] or '' }}">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Κωδικός Εξοπλισμού *</label>
+                        <input type="text" name="code" value="{{ item['code'] }}" required>
+                        <small class="field-help">Μοναδικός εσωτερικός κωδικός της εφαρμογής</small>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Κατηγορία</label>
+                        <select name="category">
+                            <option value="" {% if not item["category"] %}selected{% endif %}>
+                                Χωρίς Κατηγορία
+                            </option>
+
+                            {% for category in categories %}
+                                <option
+                                    value="{{ category['name'] }}"
+                                    {% if item["category"] == category["name"] %}selected{% endif %}
+                                >
+                                    {{ category["name"] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Κατάσταση</label>
+                        <select name="status">
+                            <option value="Διαθέσιμο" {% if item["status"] == "Διαθέσιμο" %}selected{% endif %}>
+                                Διαθέσιμο
+                            </option>
+                            <option value="Σε Χρήση" {% if item["status"] == "Σε Χρήση" %}selected{% endif %}>
+                                Σε Χρήση
+                            </option>
+                            <option value="Σε Συντήρηση" {% if item["status"] == "Σε Συντήρηση" %}selected{% endif %}>
+                                Σε Συντήρηση
+                            </option>
+                            <option value="Εκτός Λειτουργίας" {% if item["status"] == "Εκτός Λειτουργίας" %}selected{% endif %}>
+                                Εκτός Λειτουργίας
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Ποσότητα</label>
+                        <input
+                            type="number"
+                            name="quantity"
+                            min="1"
+                            value="{{ item['quantity'] or 1 }}"
+                        >
+                        <span class="field-help">
+                            Για μεμονωμένο όργανο αφήστε 1. Για κωδικούς πολλαπλών τεμαχίων δηλώστε το συνολικό πλήθος.
+                        </span>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div>
+                        <span class="form-section-kicker">02</span>
+                        <h2>Θέση Αποθήκευσης</h2>
+                        <p>Ενημέρωση φυσικής θέσης του εξοπλισμού</p>
+                    </div>
+                </div>
+
+                <div class="storage-form-grid">
+
+                    <div class="form-field">
+                        <label>Dexion</label>
+                        <input list="dexion-list" type="text" name="dexion" value="{{ item['dexion'] or '' }}">
+                        <datalist id="dexion-list">
+                            {% for location in storage_locations %}
+                                {% if location["dexion"] %}
+                                    <option value="{{ location['dexion'] }}">
+                                {% endif %}
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Ράφι</label>
+                        <input list="shelf-list" type="text" name="shelf" value="{{ item['shelf'] or '' }}">
+                        <datalist id="shelf-list">
+                            {% for location in storage_locations %}
+                                {% if location["shelf"] %}
+                                    <option value="{{ location['shelf'] }}">
+                                {% endif %}
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Στήλη</label>
+                        <input list="column-list" type="text" name="storage_column" value="{{ item['storage_column'] or '' }}">
+                        <datalist id="column-list">
+                            {% for location in storage_locations %}
+                                {% if location["storage_column"] %}
+                                    <option value="{{ location['storage_column'] }}">
+                                {% endif %}
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div>
+                        <span class="form-section-kicker">03</span>
+                        <h2>Φωτογραφικό Υλικό</h2>
+                        <p>Προβολή υφιστάμενων φωτογραφιών και προαιρετική αντικατάσταση</p>
+                    </div>
+                </div>
+
+                <div class="edit-upload-grid">
+
+                    <div class="edit-photo-card">
+                        <div class="edit-photo-card-header">
+                            <strong>Φωτογραφία Εξοπλισμού</strong>
+                            <span>
+                                {% if item["equipment_photo"] %}
+                                    Τρέχουσα φωτογραφία
+                                {% else %}
+                                    Δεν υπάρχει φωτογραφία
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if item["equipment_photo"] %}
+                            <div class="edit-photo-preview">
+                                <img
+                                    src="/uploads/equipment/{{ item['equipment_photo'] }}"
+                                    alt="Τρέχουσα φωτογραφία εξοπλισμού"
+                                >
+                            </div>
+                        {% else %}
+                            <div class="edit-photo-placeholder">EQ</div>
+                        {% endif %}
+
+                        <div class="form-field">
+                            <label>Επιλογή νέας φωτογραφίας</label>
+                            <input type="file" name="equipment_photo" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="edit-photo-card">
+                        <div class="edit-photo-card-header">
+                            <strong>Φωτογραφία Θέσης</strong>
+                            <span>
+                                {% if item["location_photo"] %}
+                                    Τρέχουσα φωτογραφία
+                                {% else %}
+                                    Δεν υπάρχει φωτογραφία
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if item["location_photo"] %}
+                            <div class="edit-photo-preview">
+                                <img
+                                    src="/uploads/locations/{{ item['location_photo'] }}"
+                                    alt="Τρέχουσα φωτογραφία θέσης"
+                                >
+                            </div>
+                        {% else %}
+                            <div class="edit-photo-placeholder">LOC</div>
+                        {% endif %}
+
+                        <div class="form-field">
+                            <label>Επιλογή νέας φωτογραφίας</label>
+                            <input type="file" name="location_photo" accept="image/*">
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div>
+                        <span class="form-section-kicker">04</span>
+                        <h2>Παρατηρήσεις</h2>
+                        <p>Συμπληρωματικές πληροφορίες για τον εξοπλισμό</p>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <textarea name="notes" rows="5">{{ item["notes"] or "" }}</textarea>
+                </div>
+            </section>
+
+            <div class="modern-form-actions">
+                <a class="secondary-button" href="/equipment/{{ item['id'] }}">
+                    Ακύρωση
+                </a>
+
+                <button class="primary-button save-equipment-button" type="submit">
+                    Αποθήκευση Αλλαγών
+                </button>
+            </div>
+
+        </form>
+
+
+        <section class="form-section-card edit-documents-card">
+
+            <div class="form-section-header">
+
+                <div>
+
+                    <span class="form-section-kicker">
+                        SECTION
+                    </span>
+
+                    <h2>
+                        Έγγραφα PDF
+                    </h2>
+
+                    <p>
+                        Προσθήκη, προβολή και διαγραφή εγγράφων του εξοπλισμού
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form
+                method="post"
+                action="/equipment/{{ item['id'] }}/documents"
+                enctype="multipart/form-data"
+                class="edit-pdf-upload-form"
+            >
+
+                <div class="form-field">
+
+                    <label>
+                        Προσθήκη νέου PDF
+                    </label>
+
+                    <input
+                        type="file"
+                        name="document"
+                        accept="application/pdf,.pdf"
+                        required
+                    >
+
+                    <span class="field-help">
+                        Επιτρέπονται μόνο αρχεία PDF.
+                    </span>
+
+                </div>
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+                    Ανέβασμα PDF
+                </button>
+
+            </form>
+
+
+            {% if documents %}
+
+                <div class="edit-document-list">
+
+                    {% for document in documents %}
+
+                        <div class="edit-document-item">
+
+                            <div class="edit-document-main">
+
+                                <span class="equipment-pdf-badge">
+                                    PDF
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        {{ document["original_name"] }}
+                                    </strong>
+
+                                    <span>
+                                        {{ document["uploaded_at"][:10]|date_gr }}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="edit-document-actions">
+
+                                <a
+                                    class="secondary-button"
+                                    href="/uploads/documents/{{ document['stored_name'] }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Άνοιγμα
+                                </a>
+
+                                <form
+                                    method="post"
+                                    action="/equipment/{{ item['id'] }}/documents/{{ document['id'] }}/delete"
+                                    onsubmit="return confirm('Να διαγραφεί οριστικά αυτό το PDF;');"
+                                >
+
+                                    <button
+                                        class="edit-pdf-delete-button"
+                                        type="submit"
+                                    >
+                                        Διαγραφή
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="edit-documents-empty">
+                    Δεν υπάρχουν PDF για αυτή την καταχώριση.
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <section class="form-section-card equipment-danger-zone">
+
+            <div class="form-section-header">
+
+                <div>
+
+                    <span class="form-section-kicker"></span>
+
+                    <h2>
+                        Διαγραφή Εξοπλισμού
+                    </h2>
+
+                    <p>
+                        Η διαγραφή αφαιρεί οριστικά την καταχώριση και τα συνδεδεμένα αρχεία της.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="equipment-danger-zone-body">
+
+                <div>
+
+                    <strong>
+                        Οριστική διαγραφή καταχώρισης
+                    </strong>
+
+                    <span>
+                        Χρησιμοποίησέ το μόνο όταν θέλεις να αφαιρέσεις εντελώς τον συγκεκριμένο εξοπλισμό από τη βιβλιοθήκη.
+                    </span>
+
+                </div>
+
+
+                <form
+                    method="post"
+                    action="/equipment/{{ item['id'] }}/delete"
+                    onsubmit="return confirm('Να διαγραφεί οριστικά αυτός ο εξοπλισμός; Η ενέργεια δεν αναιρείται.');"
+                >
+
+                    <button
+                        class="equipment-danger-delete-button"
+                        type="submit"
+                    >
+                        Διαγραφή Εξοπλισμού
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+</div>
+</body>
+</html>

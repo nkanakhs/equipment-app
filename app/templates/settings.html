@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Ρυθμίσεις
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "settings" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content">
+
+
+        <header class="topbar">
+
+            <div>
+
+                <h1>
+                    Ρυθμίσεις
+                </h1>
+
+                <p>
+                    Βασικές ρυθμίσεις της εφαρμογής και της βιβλιοθήκης
+                </p>
+
+            </div>
+
+        </header>
+
+
+        {% if request.query_params.get("saved") %}
+
+            <section
+                class="panel"
+                style="
+                    margin-bottom: 24px;
+                    border-left: 4px solid #28a745;
+                "
+            >
+
+                <strong>
+                    Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς.
+                </strong>
+
+            </section>
+
+        {% endif %}
+
+
+        <section class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Στοιχεία Εφαρμογής
+                    </h2>
+
+                    <p>
+                        Τα στοιχεία αυτά χρησιμοποιούνται στο περιβάλλον της εφαρμογής
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form
+                method="post"
+                action="/settings"
+            >
+
+
+                <div class="form-grid">
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Όνομα Εφαρμογής *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="application_name"
+                            required
+                            value="{{ settings['application_name'] or '' }}"
+                            placeholder="π.χ. Equipment Library Manager"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Όνομα Βιβλιοθήκης
+                        </label>
+
+                        <input
+                            type="text"
+                            name="library_name"
+                            value="{{ settings['library_name'] or '' }}"
+                            placeholder="π.χ. Βιβλιοθήκη Εξοπλισμού"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Οργανισμός
+                        </label>
+
+                        <input
+                            type="text"
+                            name="organization_name"
+                            value="{{ settings['organization_name'] or '' }}"
+                            placeholder="π.χ. ΔΕΗ"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Προεπιλεγμένη Μονάδα / Τομέας
+                        </label>
+
+                        <input
+                            type="text"
+                            name="default_unit"
+                            value="{{ settings['default_unit'] or '' }}"
+                            placeholder="π.χ. ΤΕΜ-ΘΗΣ"
+                        >
+
+                    </div>
+
+
+                </div>
+
+
+                <div
+                    style="
+                        display: flex;
+                        gap: 12px;
+                        margin-top: 24px;
+                    "
+                >
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                    >
+                        Αποθήκευση Ρυθμίσεων
+                    </button>
+
+                    <a
+                        class="secondary-button"
+                        href="/"
+                    >
+                        Επιστροφή στο Dashboard
+                    </a>
+
+                </div>
+
+
+            </form>
+
+
+        </section>
+
+
+
+
+        <section
+            class="panel settings-font-panel"
+            style="margin-top: 24px;"
+        >
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Μέγεθος Κειμένου
+                    </h2>
+
+                    <p>
+                        Μεγάλωσε ή μίκρυνε άμεσα τα κείμενα σε όλη την εφαρμογή
+                    </p>
+
+                </div>
+
+                <div class="font-scale-badge">
+                    <span id="fontScaleValue">100%</span>
+                </div>
+
+            </div>
+
+
+            <div class="font-scale-control">
+
+                <div class="font-scale-preview">
+
+                    <span class="font-scale-preview-small">
+                        Μικρότερο
+                    </span>
+
+                    <span class="font-scale-preview-main">
+                        Προεπισκόπηση κειμένου
+                    </span>
+
+                    <span class="font-scale-preview-large">
+                        Μεγαλύτερο
+                    </span>
+
+                </div>
+
+
+                <div class="font-scale-slider-row">
+
+                    <span class="font-scale-limit">
+                        90%
+                    </span>
+
+                    <input
+                        id="fontScaleSlider"
+                        class="font-scale-slider"
+                        type="range"
+                        min="90"
+                        max="150"
+                        step="1"
+                        value="100"
+                        aria-label="Μέγεθος κειμένου"
+                    >
+
+                    <span class="font-scale-limit">
+                        150%
+                    </span>
+
+                </div>
+
+
+                <div class="font-scale-actions">
+
+                    <span>
+                        Η αλλαγή εφαρμόζεται αμέσως και αποθηκεύεται σε αυτόν τον browser.
+                    </span>
+
+                    <button
+                        class="secondary-button"
+                        id="fontScaleReset"
+                        type="button"
+                    >
+                        Επαναφορά 100%
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        
+        <section
+            class="panel"
+            style="margin-top: 24px;"
+        >
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Τρέχουσα Διαμόρφωση
+                    </h2>
+
+                    <p>
+                        Σύνοψη των ενεργών ρυθμίσεων
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                    display: grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(240px, 1fr)
+                        );
+                    gap: 20px;
+                "
+            >
+
+
+                <div>
+
+                    <strong>
+                        Όνομα Εφαρμογής
+                    </strong>
+
+                    <p>
+                        {{ settings["application_name"] or "—" }}
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Όνομα Βιβλιοθήκης
+                    </strong>
+
+                    <p>
+                        {{ settings["library_name"] or "—" }}
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Οργανισμός
+                    </strong>
+
+                    <p>
+                        {{ settings["organization_name"] or "—" }}
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Προεπιλεγμένη Μονάδα / Τομέας
+                    </strong>
+
+                    <p>
+                        {{ settings["default_unit"] or "—" }}
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+
+        <section
+            class="panel settings-backup-panel"
+            style="margin-top: 24px;"
+        >
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Αντίγραφο Ασφαλείας
+                    </h2>
+
+                    <p>
+                        Δημιουργία πλήρους backup των δεδομένων και των αρχείων της βιβλιοθήκης
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-backup-content">
+
+                <div class="settings-backup-info">
+
+                    <div class="settings-backup-icon">
+                        ↓
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Backup Βιβλιοθήκης
+                        </strong>
+
+                        <span>
+                            Το ZIP περιλαμβάνει τη βάση δεδομένων, τις φωτογραφίες εξοπλισμού και θέσεων, καθώς και όλα τα PDF.
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<a
+                    class="primary-button settings-backup-button"
+                    href="/settings/backup"
+                >
+                    Δημιουργία &amp; Λήψη Backup
+                </a>{% endif %}
+
+            </div>
+
+
+            <div class="settings-backup-note">
+
+                <strong>
+                    Περιλαμβάνονται:
+                </strong>
+
+                <span>
+                    equipment.db · Φωτογραφίες Εξοπλισμού · Φωτογραφίες Θέσεων · Έγγραφα PDF
+                </span>
+
+            </div>
+
+        </section>
+
+    
+        {% if current_user and current_user["role"] == "ADMIN" %}
+        <section class="panel user-management-panel" id="users" style="margin-top:24px;">
+            <div class="panel-header">
+                <div>
+                    <span class="form-section-kicker">ACCESS CONTROL</span>
+                    <h2>Διαχείριση Χρηστών</h2>
+                    <p>Λογαριασμοί ADMIN / USER και δικαιώματα πρόσβασης.</p>
+                </div>
+            </div>
+
+            <form method="post" action="/settings/users/new" class="user-create-grid">
+                <div class="form-field"><label>Ονοματεπώνυμο *</label><input name="full_name" required></div>
+                <div class="form-field"><label>Username *</label><input name="username" required autocomplete="off"></div>
+                <div class="form-field"><label>Ρόλος</label><select name="role"><option value="USER">USER</option><option value="ADMIN">ADMIN</option></select></div>
+                <div class="form-field"><label>Αρχικός κωδικός *</label><input type="password" name="password" minlength="8" required autocomplete="new-password"></div>
+                <div class="user-create-action"><button class="primary-button" type="submit">Νέος Χρήστης</button></div>
+            </form>
+
+            <div class="user-admin-list">
+            {% for user in users %}
+                <article class="user-admin-card {% if user['active'] == 0 %}is-disabled{% endif %}">
+                    <div class="user-admin-identity">
+                        <span class="account-avatar small">{{ user['full_name'][:1]|upper }}</span>
+                        <div>
+                            <strong>{{ user['full_name'] }}</strong>
+                            <small>@{{ user['username'] }} · {% if user['last_login'] %}Τελευταία σύνδεση {{ user['last_login'][:16]|replace('T',' ') }}{% else %}Δεν έχει συνδεθεί{% endif %}</small>
+                        </div>
+                    </div>
+
+                    <form method="post" action="/settings/users/{{ user['id'] }}/update" class="user-admin-controls">
+                        <input name="full_name" value="{{ user['full_name'] }}" required aria-label="Ονοματεπώνυμο">
+                        <input name="username" value="{{ user['username'] }}" required aria-label="Username">
+                        <select name="role">
+                            <option value="USER" {% if user['role']=='USER' %}selected{% endif %}>USER</option>
+                            <option value="ADMIN" {% if user['role']=='ADMIN' %}selected{% endif %}>ADMIN</option>
+                        </select>
+                        <label class="user-active-switch">
+                            <input type="checkbox" name="active" value="1" {% if user['active']==1 %}checked{% endif %}>
+                            <span>Ενεργός</span>
+                        </label>
+                        <button class="secondary-button compact-button" type="submit">Αποθήκευση</button>
+                    </form>
+
+                    <form method="post" action="/settings/users/{{ user['id'] }}/reset-password" class="user-reset-form">
+                        <input type="password" name="new_password" minlength="8" placeholder="Νέος κωδικός" required>
+                        <button class="secondary-button compact-button" type="submit">Reset Password</button>
+                    </form>
+                </article>
+            {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel audit-log-panel" style="margin-top:24px;">
+            <div class="panel-header">
+                <div>
+                    <span class="form-section-kicker">TRACEABILITY</span>
+                    <h2>Πρόσφατες Ενέργειες</h2>
+                    <p>Οι 40 τελευταίες αλλαγές που καταγράφηκαν από συνδεδεμένους χρήστες.</p>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Ημερομηνία</th><th>Χρήστης</th><th>Ρόλος</th><th>Ενέργεια</th><th>Διαδρομή</th></tr></thead>
+                    <tbody>
+                    {% for row in audit_rows %}
+                        <tr>
+                            <td>{{ row['created_at'][:16]|replace('T',' ') }}</td>
+                            <td>{{ row['full_name'] or row['username'] }}</td>
+                            <td><span class="role-badge role-{{ row['role']|lower }}">{{ row['role'] }}</span></td>
+                            <td>{{ row['action'] }}</td>
+                            <td><code>{{ row['path'] }}</code></td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5">Δεν υπάρχουν ακόμα καταγεγραμμένες ενέργειες.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+</main>
+
+</div>
+
+
+</body>
+
+</html>

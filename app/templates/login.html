@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Σύνδεση</title>
+<link rel="stylesheet" href="/static/style.css?v=1600">
+</head>
+<body class="auth-body">
+<div class="auth-shell">
+    <div class="auth-brand">
+        <img src="/static/dei-logo-sidebar-v16.webp?v=1160" alt="ΔΕΗ">
+        <div>
+            <h1>{{ settings['application_name'] or 'Equipment Library Manager' }}</h1>
+            <p>{{ settings['library_name'] or 'Βιβλιοθήκη Εξοπλισμού' }}</p>
+        </div>
+    </div>
+    <section class="auth-card">
+        <span class="auth-kicker">SECURE ACCESS</span>
+        <h2>Σύνδεση Χρήστη</h2>
+        <p>Εισάγετε τα στοιχεία πρόσβασης στην πλατφόρμα.</p>
+        {% if error %}<div class="auth-error">{{ error }}</div>{% endif %}
+        {% if request.query_params.get('changed') %}<div class="auth-success">Ο κωδικός άλλαξε. Συνδεθείτε ξανά.</div>{% endif %}
+        <form method="post" action="/login">
+            <input type="hidden" name="next_path" value="{{ next_path }}">
+            <label>Username<input name="username" autocomplete="username" required autofocus></label>
+            <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+            <button class="primary-button auth-submit" type="submit">Σύνδεση</button>
+        </form>
+    </section>
+</div>
+</body>
+</html>

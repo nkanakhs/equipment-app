@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Πόροι & Σταθμοί
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "teams" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content teams-page">
+
+
+        <header class="topbar teams-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Πόροι & Σταθμοί
+                </div>
+
+                <h1>
+                    Πόροι & Σταθμοί
+                </h1>
+
+                <p>
+                    Διαχείριση ομάδων, οχημάτων, έδρας και σταθμών παραγωγής
+                </p>
+
+            </div>
+
+        </header>
+
+        {% if request.state.current_user and request.state.current_user["role"] == "USER" %}
+        <div class="readonly-banner">
+            <strong>Προβολή μόνο</strong>
+            <span>Ο λογαριασμός USER δεν έχει δικαίωμα δημιουργίας, επεξεργασίας ή διαγραφής σε αυτή την ενότητα.</span>
+        </div>
+        {% endif %}
+
+
+
+        {% if not resource_section %}
+        <section class="resource-hub-grid">
+            <a class="resource-hub-card" href="/teams?section=groups">
+                <span class="resource-hub-icon" aria-hidden="true">
+                    <img src="/static/groups.png?v=1600" alt="" class="resource-hub-approved-icon">
+                </span>
+                <div>
+                    <strong>Ομάδες</strong>
+                    <p>Δημιουργία και διαχείριση Ομάδων Μετρήσεων.</p>
+                    <small>{{ teams|length }} καταχωρισμένες</small>
+                </div>
+                <b>→</b>
+            </a>
+
+            <a class="resource-hub-card" href="/teams?section=vehicles">
+                <span class="resource-hub-icon" aria-hidden="true">
+                    <img src="/static/vehicles.png?v=1600" alt="" class="resource-hub-approved-icon">
+                </span>
+                <div>
+                    <strong>Οχήματα</strong>
+                    <p>Οχήματα και πινακίδες για τις αποστολές.</p>
+                    <small>{{ vehicles|length }} καταχωρισμένα</small>
+                </div>
+                <b>→</b>
+            </a>
+
+            <a class="resource-hub-card" href="/teams?section=headquarters">
+                <span class="resource-hub-icon" aria-hidden="true">
+                    <img src="/static/headquarters.png?v=1600" alt="" class="resource-hub-approved-icon">
+                </span>
+                <div>
+                    <strong>Έδρα</strong>
+                    <p>Σημείο εκκίνησης και συντεταγμένες της Έδρας.</p>
+                    <small>{{ headquarters['headquarters_name'] or 'Έδρα' }}</small>
+                </div>
+                <b>→</b>
+            </a>
+
+            <a class="resource-hub-card resource-hub-card-wide" href="/teams?section=stations">
+                <span class="resource-hub-icon" aria-hidden="true">
+                    <img src="/static/stations.png?v=1600" alt="" class="resource-hub-approved-icon">
+                </span>
+                <div>
+                    <strong>Σταθμοί</strong>
+                    <p>Μητρώο σταθμών παραγωγής, γεωγραφικά στοιχεία και προβολή στον χάρτη.</p>
+                    <small>{{ destinations|length }} καταχωρισμένοι</small>
+                </div>
+                <b>→</b>
+            </a>
+        </section>
+        {% else %}
+            <div class="resource-section-toolbar">
+                <a href="/teams" class="resource-back-button">← Πόροι & Σταθμοί</a>
+                <span>
+                    {% if resource_section == 'groups' %}Ομάδες
+                    {% elif resource_section == 'vehicles' %}Οχήματα
+                    {% elif resource_section == 'headquarters' %}Έδρα
+                    {% elif resource_section == 'stations' %}Σταθμοί
+                    {% endif %}
+                </span>
+            </div>
+        {% endif %}
+
+
+        {% if resource_section == "groups" %}
+        <section class="teams-layout">
+
+
+            <section class="team-create-card">
+
+                <div class="team-card-header">
+
+                    <div>
+
+                        <span class="form-section-kicker"></span>
+
+                        <h2>
+                            Νέα Ομάδα
+                        </h2>
+
+                        <p>
+                            Προσθέστε νέα Ομάδα Μετρήσεων
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                    method="post"
+                    action="/teams/new"
+                    class="team-create-form"
+                >
+
+                    <div class="form-field">
+
+                        <label>
+                            Ονομασία Ομάδας *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            required
+                            placeholder="π.χ. Ομάδα Μετρήσεων 3"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Περιγραφή
+                        </label>
+
+                        <textarea
+                            name="description"
+                            rows="4"
+                            placeholder="Προαιρετική περιγραφή"
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        class="primary-button team-submit-button"
+                        type="submit"
+                    >
+                        Προσθήκη Ομάδας
+                    </button>
+
+                </form>{% endif %}
+
+            </section>
+
+
+            <section class="team-list-card">
+
+                <div class="team-card-header team-list-header">
+
+                    <div>
+
+                        <span class="form-section-kicker"></span>
+
+                        <h2>
+                            Καταχωρισμένες Ομάδες
+                        </h2>
+
+                        <p>
+                            Λίστα διαθέσιμων Ομάδων Μετρήσεων
+                        </p>
+
+                    </div>
+
+
+                    {% if teams %}
+
+                        <div class="team-count-badge">
+                            {{ teams|length }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if teams %}
+
+
+                    <div class="team-list">
+
+
+                        {% for team in teams %}
+
+
+                            <article class="team-list-item">
+
+
+                                <div class="team-main-info">
+
+                                    <div class="team-icon-box">
+                                        {{ team["name"][:1]|upper }}
+                                    </div>
+
+
+                                    <div>
+
+                                        <h3>
+                                            {{ team["name"] }}
+                                        </h3>
+
+                                        <p>
+                                            {{ team["description"] or "Χωρίς περιγραφή" }}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="team-item-actions">
+
+                                    {% if team["active"] == 1 %}
+
+                                        <span class="status available">
+                                            Ενεργή
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status neutral-status">
+                                            Ανενεργή
+                                        </span>
+
+                                    {% endif %}
+
+                                    <button
+                                        class="team-edit-button"
+                                        type="button"
+                                        onclick="toggleTeamEdit({{ team['id'] }})"
+                                    >
+                                        Επεξεργασία
+                                    </button>
+
+
+                                    {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                        method="post"
+                                        action="/teams/{{ team['id'] }}/delete"
+                                        onsubmit="return confirm('Να διαγραφεί η ομάδα;');"
+                                    >
+
+                                        <button
+                                            class="team-delete-button"
+                                            type="submit"
+                                        >
+                                            Διαγραφή
+                                        </button>
+
+                                    </form>{% endif %}
+
+                                </div>
+
+
+                                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                    id="team-edit-{{ team['id'] }}"
+                                    method="post"
+                                    action="/teams/{{ team['id'] }}/edit"
+                                    class="team-inline-edit"
+                                    style="display: none;"
+                                >
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Ονομασία Ομάδας
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value="{{ team['name'] }}"
+                                            required
+                                        >
+
+                                    </div>
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Περιγραφή
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="description"
+                                            value="{{ team['description'] or '' }}"
+                                        >
+
+                                    </div>
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Κατάσταση
+                                        </label>
+
+                                        <select name="active">
+
+                                            <option
+                                                value="1"
+                                                {% if team["active"] == 1 %}selected{% endif %}
+                                            >
+                                                Ενεργή
+                                            </option>
+
+                                            <option
+                                                value="0"
+                                                {% if team["active"] == 0 %}selected{% endif %}
+                                            >
+                                                Ανενεργή
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div class="team-inline-edit-actions">
+
+                                        <button
+                                            class="primary-button"
+                                            type="submit"
+                                        >
+                                            Αποθήκευση
+                                        </button>
+
+                                        <button
+                                            class="secondary-button"
+                                            type="button"
+                                            onclick="toggleTeamEdit({{ team['id'] }})"
+                                        >
+                                            Ακύρωση
+                                        </button>
+
+                                    </div>
+
+                                </form>{% endif %}
+
+
+                            </article>
+
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                {% else %}
+
+
+                    <div class="team-empty-state">
+
+                        <div class="team-empty-icon">
+                            +
+                        </div>
+
+                        <h3>
+                            Δεν υπάρχουν καταχωρισμένες ομάδες
+                        </h3>
+
+                        <p>
+                            Δημιουργήστε την πρώτη Ομάδα Μετρήσεων από τη φόρμα αριστερά.
+                        </p>
+
+                    </div>
+
+
+                {% endif %}
+
+            </section>
+
+
+        </section>
+        {% endif %}
+
+
+
+                {% if resource_section in ["vehicles","headquarters","stations"] %}
+<section class="team-assets-grid">
+
+                        {% if resource_section == "vehicles" %}
+<section class="team-create-card team-assets-card">
+
+                <div class="team-card-header">
+
+                    <div>
+
+                        <span class="form-section-kicker"></span>
+
+                        <h2>
+                            Οχήματα Αποστολών
+                        </h2>
+
+                        <p>
+                            Μοντέλο και πινακίδα για τις εκτός έδρας αποστολές
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                    method="post"
+                    action="/teams/vehicles/new"
+                    class="team-asset-create-form"
+                >
+
+                    <div class="form-field">
+
+                        <label>
+                            Μοντέλο *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="model"
+                            placeholder="π.χ. Peugeot Partner"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-field">
+
+                        <label>
+                            Πινακίδα *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="license_plate"
+                            placeholder="π.χ. ΙΚΧ-1234"
+                            required
+                        >
+
+                    </div>
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                    >
+                        Προσθήκη Οχήματος
+                    </button>
+
+                </form>{% endif %}
+
+                {% if vehicles %}
+
+                    <div class="team-assets-list">
+
+                        {% for vehicle in vehicles %}
+
+                            <div class="team-asset-row">
+
+                                <div>
+
+                                    <strong>
+                                        {{ vehicle["model"] }}
+                                    </strong>
+
+                                    <span>
+                                        {{ vehicle["license_plate"] }}
+                                    </span>
+
+                                </div>
+
+                                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                    method="post"
+                                    action="/teams/vehicles/{{ vehicle['id'] }}/delete"
+                                    onsubmit="return confirm('Να διαγραφεί το όχημα;');"
+                                >
+
+                                    <button
+                                        class="team-delete-button"
+                                        type="submit"
+                                    >
+                                        Διαγραφή
+                                    </button>
+
+                                </form>{% endif %}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p class="team-assets-empty">
+                        Δεν έχουν καταχωριστεί οχήματα.
+                    </p>
+
+                {% endif %}
+
+            </section>
+            {% endif %}
+
+
+                        {% if resource_section == "headquarters" %}
+<section class="team-create-card team-assets-card mission-geo-card">
+
+                <div class="team-card-header">
+                    <div>
+                        <span class="form-section-kicker">MISSION MAP</span>
+                        <h2>Έδρα</h2>
+                        <p>Σημείο εκκίνησης των αποστολών στον χάρτη</p>
+                    </div>
+                </div>
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form method="post" action="/settings/headquarters/edit" class="team-asset-create-form mission-geo-form">
+                    <div class="form-field">
+                        <label>Ονομασία Έδρας *</label>
+                        <input type="text" name="headquarters_name" required
+                               value="{{ headquarters['headquarters_name'] or 'Έδρα ΤΕΜ-ΘΗΣ' }}">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Διεύθυνση / Περιγραφή</label>
+                        <input type="text" name="headquarters_address"
+                               value="{{ headquarters['headquarters_address'] or '' }}"
+                               placeholder="π.χ. Αθήνα, Αττική">
+                    </div>
+
+                    <div class="mission-coordinate-grid">
+                        <div class="form-field">
+                            <label>Latitude</label>
+                            <input type="text" inputmode="decimal" name="headquarters_latitude"
+                                   value="{{ headquarters['headquarters_latitude'] if headquarters['headquarters_latitude'] is not none else '' }}"
+                                   placeholder="37.9838">
+                        </div>
+                        <div class="form-field">
+                            <label>Longitude</label>
+                            <input type="text" inputmode="decimal" name="headquarters_longitude"
+                                   value="{{ headquarters['headquarters_longitude'] if headquarters['headquarters_longitude'] is not none else '' }}"
+                                   placeholder="23.7275">
+                        </div>
+                    </div>
+
+                    <div class="mission-coordinate-note">
+                        Οι αρχικές συντεταγμένες είναι δοκιμαστικό σημείο αναφοράς στην Αθήνα. Μπορείτε να τις αλλάξετε οποιαδήποτε στιγμή.
+                    </div>
+
+                    <button class="primary-button" type="submit">Αποθήκευση Έδρας</button>
+                </form>{% endif %}
+
+            </section>
+            {% endif %}
+
+
+                        {% if resource_section == "stations" %}
+<section class="team-create-card team-assets-card mission-geo-card mission-stations-card">
+                <div class="team-card-header">
+                    <div>
+                        <span class="form-section-kicker">ΣΤΑΘΜΟΙ ΠΑΡΑΓΩΓΗΣ</span>
+                        <h2>Μητρώο Σταθμών</h2>
+                        <p>Στοιχεία σταθμών παραγωγής, επιχειρησιακή κατάσταση και γεωγραφική απεικόνιση</p>
+                    </div>
+                    <div class="team-count-badge">{{ destinations|length }}</div>
+                </div>
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form method="post" action="/teams/destinations/new"
+                      class="team-asset-create-form mission-geo-form station-master-form">
+                    <div class="station-form-grid">
+                        <div class="form-field"><label>Κωδικός Σταθμού</label><input type="text" name="station_code" placeholder="π.χ. PPC-063"></div>
+                        <div class="form-field station-name-field"><label>Σταθμός *</label><input type="text" name="name" required></div>
+                        <div class="form-field"><label>Κατηγορία</label><select name="category"><option value="">—</option><option>ΑΗΣ</option><option>ΘΗΣ</option><option>ΥΗΣ</option><option>ΑΣΠ</option><option>ΤΣΠ</option></select></div>
+                        <div class="form-field"><label>Πηγή Ενέργειας</label><select name="energy_source">
+                                <option value="">— Επιλέξτε —</option>
+                                <option>Λιγνίτης</option>
+                                <option>Φυσικό αέριο</option>
+                                <option>Πετρέλαιο</option>
+                                <option>Πετρέλαιο / diesel</option>
+                                <option>Πετρέλαιο / φυσικό αέριο</option>
+                                <option>Υδροηλεκτρικό</option>
+                            </select></div>
+                        <div class="form-field"><label>Περιοχή / Σύστημα</label><input type="text" name="area_system"></div>
+                        <div class="form-field"><label>Διεύθυνση / Τοποθεσία</label><input type="text" name="address"></div>
+                        <div class="form-field"><label>Latitude (WGS84)</label><input type="text" inputmode="decimal" name="latitude"></div>
+                        <div class="form-field"><label>Longitude (WGS84)</label><input type="text" inputmode="decimal" name="longitude"></div>
+                        <div class="form-field station-wide-field"><label>Ακρίβεια Συντεταγμένων</label><input type="text" name="coordinate_accuracy"></div>
+                        <div class="form-field"><label>Επιχειρησιακή Κατάσταση</label><input type="text" name="operational_status"></div>
+                        <div class="form-field"><label>Χρήση στην Πλατφόρμα</label><select name="active"><option value="1" selected>Ενεργός</option><option value="0">Ανενεργός</option></select></div>
+                        <div class="form-field station-wide-field"><label>Παρατηρήσεις</label><textarea name="notes" rows="3"></textarea></div>
+                        <label class="station-verified-switch station-wide-field station-map-switch">
+                            <input type="checkbox" name="show_on_map" value="1" checked>
+                            <span>
+                                <strong>Εμφάνιση στον Interactive Χάρτη</strong>
+                                <small>Απενεργοποιήστε το για να παραμείνει ο σταθμός στη βάση χωρίς να εμφανίζεται κουκίδα στο Dashboard.</small>
+                            </span>
+                        </label>
+                        <label class="station-verified-switch station-wide-field">
+                            <input type="checkbox" name="is_location_verified" value="1">
+                            <span><strong>Επαληθευμένη Θέση</strong><small>Η γεωγραφική θέση έχει ελεγχθεί και θεωρείται επιβεβαιωμένη.</small></span>
+                        </label>
+                    </div>
+                    <button class="primary-button" type="submit">Προσθήκη Σταθμού</button>
+                </form>{% endif %}
+
+                {% if destinations %}
+                    <div class="station-master-list">
+                        {% for destination in destinations %}
+                            <article class="station-master-card">
+                                <div class="station-master-card-main">
+                                    <div class="station-master-title-row">
+                                        <div>
+                                            <span class="station-code-badge">{{ destination['station_code'] or 'Χωρίς ID' }}</span>
+                                            {% if destination['category'] %}<span class="station-category-badge">{{ destination['category'] }}</span>{% endif %}
+                                        </div>
+                                        <div class="station-master-statuses">
+                                            {% if destination['latitude'] is none or destination['longitude'] is none %}
+                                                <span class="station-no-pin">Χωρίς pin</span>
+                                            {% elif destination['show_on_map'] == 0 %}
+                                                <span class="station-map-hidden">Κρυφό από χάρτη</span>
+                                            {% else %}
+                                                <span class="station-map-ready">● Στον χάρτη</span>
+                                            {% endif %}
+                                            {% if destination['is_location_verified'] == 1 %}
+                                                <span class="station-verified">✓ Επαληθευμένη</span>
+                                            {% else %}
+                                                <span class="station-provisional">Υπό επαλήθευση</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <h3>{{ destination['name'] }}</h3>
+                                    <div class="station-master-meta">
+                                        {% if destination['energy_source'] %}<span><b>Ενέργεια:</b> {{ destination['energy_source'] }}</span>{% endif %}
+                                        {% if destination['area_system'] %}<span><b>Περιοχή:</b> {{ destination['area_system'] }}</span>{% endif %}
+                                        {% if destination['operational_status'] %}<span><b>Κατάσταση:</b> {{ destination['operational_status'] }}</span>{% endif %}
+                                    </div>
+                                    {% if destination['latitude'] is not none and destination['longitude'] is not none %}
+                                        <div class="station-coordinate-line">{{ '%.6f'|format(destination['latitude']) }}, {{ '%.6f'|format(destination['longitude']) }}</div>
+                                    {% endif %}
+                                    {% if destination['coordinate_accuracy'] %}<p class="station-accuracy-text">{{ destination['coordinate_accuracy'] }}</p>{% endif %}
+                                </div>
+                                <div class="mission-station-actions">
+                                    {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<button class="secondary-button compact-button" type="button" onclick="toggleDestinationEdit({{ destination['id'] }})">Επεξεργασία</button>{% endif %}
+                                    {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form method="post" action="/teams/destinations/{{ destination['id'] }}/delete" onsubmit="return confirm('Να διαγραφεί ο σταθμός;');">
+                                        <button class="team-delete-button" type="submit">Διαγραφή</button>
+                                    </form>{% endif %}
+                                </div>
+                            </article>
+
+                            {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form id="destination-edit-{{ destination['id'] }}" method="post"
+                                  action="/teams/destinations/{{ destination['id'] }}/edit"
+                                  class="mission-destination-edit-form station-edit-form" style="display:none;">
+                                <div class="station-form-grid">
+                                    <div class="form-field"><label>Κωδικός Σταθμού</label><input type="text" name="station_code" value="{{ destination['station_code'] or '' }}"></div>
+                                    <div class="form-field station-name-field"><label>Σταθμός *</label><input type="text" name="name" value="{{ destination['name'] }}" required></div>
+                                    <div class="form-field"><label>Κατηγορία</label><select name="category"><option value="">—</option>{% for cat in ['ΑΗΣ','ΘΗΣ','ΥΗΣ','ΑΣΠ','ΤΣΠ'] %}<option value="{{ cat }}" {% if destination['category'] == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}</select></div>
+                                    <div class="form-field"><label>Πηγή Ενέργειας</label><select name="energy_source">
+                                            <option value="">— Επιλέξτε —</option>
+                                            {% for source in ['Λιγνίτης','Φυσικό αέριο','Πετρέλαιο','Πετρέλαιο / diesel','Πετρέλαιο / φυσικό αέριο','Υδροηλεκτρικό'] %}
+                                                <option value="{{ source }}" {% if destination['energy_source'] == source %}selected{% endif %}>{{ source }}</option>
+                                            {% endfor %}
+                                            {% if destination['energy_source'] and destination['energy_source'] not in ['Λιγνίτης','Φυσικό αέριο','Πετρέλαιο','Πετρέλαιο / diesel','Πετρέλαιο / φυσικό αέριο','Υδροηλεκτρικό'] %}
+                                                <option value="{{ destination['energy_source'] }}" selected>{{ destination['energy_source'] }}</option>
+                                            {% endif %}
+                                        </select></div>
+                                    <div class="form-field"><label>Περιοχή / Σύστημα</label><input type="text" name="area_system" value="{{ destination['area_system'] or '' }}"></div>
+                                    <div class="form-field"><label>Διεύθυνση / Τοποθεσία</label><input type="text" name="address" value="{{ destination['address'] or '' }}"></div>
+                                    <div class="form-field"><label>Latitude (WGS84)</label><input type="text" inputmode="decimal" name="latitude" value="{{ destination['latitude'] if destination['latitude'] is not none else '' }}"></div>
+                                    <div class="form-field"><label>Longitude (WGS84)</label><input type="text" inputmode="decimal" name="longitude" value="{{ destination['longitude'] if destination['longitude'] is not none else '' }}"></div>
+                                    <div class="form-field station-wide-field"><label>Ακρίβεια Συντεταγμένων</label><input type="text" name="coordinate_accuracy" value="{{ destination['coordinate_accuracy'] or '' }}"></div>
+                                    <div class="form-field"><label>Επιχειρησιακή Κατάσταση</label><input type="text" name="operational_status" value="{{ destination['operational_status'] or '' }}"></div>
+                                    <div class="form-field"><label>Χρήση στην Πλατφόρμα</label><select name="active"><option value="1" {% if destination['active'] == 1 %}selected{% endif %}>Ενεργός</option><option value="0" {% if destination['active'] == 0 %}selected{% endif %}>Ανενεργός</option></select></div>
+                                    <div class="form-field station-wide-field"><label>Παρατηρήσεις</label><textarea name="notes" rows="3">{{ destination['notes'] or '' }}</textarea></div>
+                                    <label class="station-verified-switch station-wide-field station-map-switch">
+                                        <input type="checkbox" name="show_on_map" value="1" {% if destination['show_on_map'] != 0 %}checked{% endif %}>
+                                        <span>
+                                            <strong>Εμφάνιση στον Interactive Χάρτη</strong>
+                                            <small>Η κουκίδα του σταθμού εμφανίζεται μόνο όταν υπάρχουν συντεταγμένες και η επιλογή είναι ενεργή.</small>
+                                        </span>
+                                    </label>
+                                    <label class="station-verified-switch station-wide-field"><input type="checkbox" name="is_location_verified" value="1" {% if destination['is_location_verified'] == 1 %}checked{% endif %}><span><strong>Επαληθευμένη Θέση</strong><small>Η γεωγραφική θέση έχει ελεγχθεί.</small></span></label>
+                                </div>
+                                <div class="mission-edit-actions">
+                                    <button class="primary-button" type="submit">Αποθήκευση</button>
+                                    {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<button class="secondary-button" type="button" onclick="toggleDestinationEdit({{ destination['id'] }})">Ακύρωση</button>{% endif %}
+                                </div>
+                            </form>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="team-assets-empty">Δεν έχουν καταχωριστεί σταθμοί.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+
+        </section>
+        {% endif %}
+
+    </main>
+
+</div>
+
+<script src="/static/js/teams-1.js"></script>
+
+</body>
+
+</html>

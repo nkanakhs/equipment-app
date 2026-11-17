@@ -1,0 +1,39 @@
+name: equipment-library-mysql
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8005:8000"
+    environment:
+      ELM_DATABASE_URL: mysql+pymysql://equipment:${MYSQL_PASSWORD:-local-development-only}@db:3306/equipment?charset=utf8mb4
+      ELM_STORAGE_DIR: /var/lib/equipment-library
+      ELM_COOKIE_SECURE: "false"
+    volumes:
+      - app-files:/var/lib/equipment-library
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+  db:
+    image: mysql:8.4
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_DATABASE: equipment
+      MYSQL_USER: equipment
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-local-development-only}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-local-root-only}
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u equipment -D equipment -e 'SELECT 1'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+volumes:
+  database:
+  app-files:

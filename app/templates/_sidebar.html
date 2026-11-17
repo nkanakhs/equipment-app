@@ -1,0 +1,191 @@
+
+<script src="/static/js/_sidebar-1.js"></script>
+
+<aside class="sidebar">
+
+    <div class="logo-area">
+
+        <img
+            class="dei-logo"
+            src="/static/dei-logo-sidebar-v16.webp?v=1160"
+            alt="ΔΕΗ"
+        >
+
+        <div class="logo-text">
+
+            <h2>
+                {% if settings and settings["application_name"] %}
+                    {{ settings["application_name"] }}
+                {% else %}
+                    Βιβλιοθήκη Εξοπλισμού
+                {% endif %}
+            </h2>
+
+            <span>
+                Τομέας Παρακολούθησης Απόδοσης
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <nav class="menu">
+
+        <a
+            class="menu-item {% if active_page == 'dashboard' %}active{% endif %}"
+            href="/"
+        >
+            Dashboard
+        </a>
+
+        <a
+            class="menu-item {% if active_page in ['equipment','equipment_new','picking_lists'] %}active{% endif %}"
+            href="/equipment"
+        >
+            Εξοπλισμός
+        </a>
+
+        {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}
+        <a
+            class="menu-item {% if active_page == 'checkout' %}active{% endif %}"
+            href="/checkout-return"
+        >
+            Χρέωση / Επιστροφή
+        </a>
+        {% endif %}
+
+        <a
+            class="menu-item {% if active_page == 'history' %}active{% endif %}"
+            href="/history/missions"
+        >
+            Ιστορικό Κινήσεων
+        </a>
+
+        <a
+            class="menu-item {% if active_page == 'teams' %}active{% endif %}"
+            href="/teams"
+        >
+            Πόροι & Σταθμοί
+        </a>
+
+        <a
+            class="menu-item {% if active_page == 'categories' %}active{% endif %}"
+            href="/categories"
+        >
+            Κατηγορίες
+        </a>
+
+        <a
+            class="menu-item {% if active_page == 'locations' %}active{% endif %}"
+            href="/locations"
+        >
+            Θέσεις Αποθήκευσης
+        </a>
+
+        {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}
+        <a
+            class="menu-item {% if active_page == 'settings' %}active{% endif %}"
+            href="/settings"
+        >
+            Ρυθμίσεις
+        </a>
+        {% endif %}
+
+    </nav>
+
+
+    <div class="sidebar-user-card">
+        {% if request.state.current_user %}
+            <a href="/account" class="sidebar-user-link">
+                <span class="sidebar-user-avatar">{{ request.state.current_user["full_name"][:1]|upper }}</span>
+                <span class="sidebar-user-copy">
+                    <strong>{{ request.state.current_user["full_name"] }}</strong>
+                    <small>{{ request.state.current_user["role"] }}</small>
+                </span>
+            </a>
+            <form method="post" action="/logout">
+                <button class="sidebar-logout-button" type="submit">Αποσύνδεση</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="sidebar-footer">
+        <span class="sidebar-footer-name">
+            {% if settings and settings["library_name"] %}
+                {{ settings["library_name"] }}
+            {% else %}
+                Equipment Library Manager
+            {% endif %}
+        </span>
+        <strong class="sidebar-footer-version">v1.60</strong>
+    </div>
+
+</aside>
+<div
+    class="app-toast-container"
+    id="appToastContainer"
+    aria-live="polite"
+    aria-atomic="true"
+></div>
+
+
+<script src="/static/js/_sidebar-2.js"></script>
+
+
+<div
+    class="app-confirm-backdrop"
+    id="appConfirmBackdrop"
+    aria-hidden="true"
+>
+
+    <div
+        class="app-confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="appConfirmTitle"
+        aria-describedby="appConfirmMessage"
+    >
+
+        <div class="app-confirm-icon">
+            !
+        </div>
+
+        <div class="app-confirm-copy">
+
+            <strong id="appConfirmTitle">
+                Επιβεβαίωση ενέργειας
+            </strong>
+
+            <span id="appConfirmMessage">
+                Θέλεις να συνεχίσεις;
+            </span>
+
+        </div>
+
+        <div class="app-confirm-actions">
+
+            <button
+                class="app-confirm-cancel"
+                id="appConfirmCancel"
+                type="button"
+            >
+                Ακύρωση
+            </button>
+
+            <button
+                class="app-confirm-accept"
+                id="appConfirmAccept"
+                type="button"
+            >
+                Επιβεβαίωση
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/static/js/_sidebar-3.js"></script>

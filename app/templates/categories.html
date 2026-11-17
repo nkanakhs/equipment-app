@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Κατηγορίες
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "categories" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content categories-page">
+
+
+        <header class="topbar categories-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Κατηγορίες
+                </div>
+
+                <h1>
+                    Κατηγορίες
+                </h1>
+
+                <p>
+                    Διαχείριση κατηγοριών εξοπλισμού
+                </p>
+
+            </div>
+
+        </header>
+
+        {% if request.state.current_user and request.state.current_user["role"] == "USER" %}
+        <div class="readonly-banner">
+            <strong>Προβολή μόνο</strong>
+            <span>Ο λογαριασμός USER δεν έχει δικαίωμα δημιουργίας, επεξεργασίας ή διαγραφής σε αυτή την ενότητα.</span>
+        </div>
+        {% endif %}
+
+
+
+        <section class="categories-layout">
+
+
+            <section class="category-create-card">
+
+                <div class="category-card-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            SECTION
+                        </span>
+
+                        <h2>
+                            Νέα Κατηγορία
+                        </h2>
+
+                        <p>
+                            Προσθέστε νέα κατηγορία στη βιβλιοθήκη
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                    method="post"
+                    action="/categories/new"
+                    class="category-create-form"
+                >
+
+                    <div class="form-field">
+
+                        <label>
+                            Ονομασία Κατηγορίας *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            required
+                            placeholder="π.χ. Εξοπλισμός Ηλεκτρικών Μετρήσεων"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Περιγραφή
+                        </label>
+
+                        <textarea
+                            name="description"
+                            rows="4"
+                            placeholder="Προαιρετική περιγραφή"
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        class="primary-button category-submit-button"
+                        type="submit"
+                    >
+                        Προσθήκη Κατηγορίας
+                    </button>
+
+                </form>{% endif %}
+
+            </section>
+
+
+            <section class="category-list-card">
+
+                <div class="category-card-header category-list-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            SECTION
+                        </span>
+
+                        <h2>
+                            Καταχωρισμένες Κατηγορίες
+                        </h2>
+
+                        <p>
+                            Επεξεργασία ή διαγραφή κατηγοριών
+                        </p>
+
+                    </div>
+
+
+                    {% if categories %}
+
+                        <div class="category-count-badge">
+                            {{ categories|length }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if categories %}
+
+                    <div class="category-list">
+
+                        {% for category in categories %}
+
+                            <article class="category-list-item category-editable-item">
+
+                                <div class="category-main-info">
+
+                                    <div class="category-icon-box">
+                                        {{ category["name"][:1]|upper }}
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            {{ category["name"] }}
+                                        </h3>
+
+                                        <p>
+                                            {{ category["description"] or "Χωρίς περιγραφή" }}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="category-item-actions">
+
+                                    {% if category["active"] == 1 %}
+
+                                        <span class="status available">
+                                            Ενεργή
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status neutral-status">
+                                            Ανενεργή
+                                        </span>
+
+                                    {% endif %}
+
+
+                                    <button
+                                        class="category-edit-button"
+                                        type="button"
+                                        onclick="toggleCategoryEdit('{{ category['id'] }}')"
+                                    >
+                                        Επεξεργασία
+                                    </button>
+
+
+                                    {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                        method="post"
+                                        action="/categories/{{ category['id'] }}/delete"
+                                        onsubmit="return confirm('Να διαγραφεί η κατηγορία;');"
+                                    >
+
+                                        <button
+                                            class="category-delete-button"
+                                            type="submit"
+                                        >
+                                            Διαγραφή
+                                        </button>
+
+                                    </form>{% endif %}
+
+                                </div>
+
+
+                                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                    method="post"
+                                    action="/categories/{{ category['id'] }}/edit"
+                                    class="inline-edit-form category-inline-edit"
+                                    id="categoryEdit{{ category['id'] }}"
+                                    hidden
+                                >
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Ονομασία
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value="{{ category['name'] }}"
+                                            required
+                                        >
+
+                                    </div>
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Περιγραφή
+                                        </label>
+
+                                        <textarea
+                                            name="description"
+                                            rows="2"
+                                        >{{ category["description"] or "" }}</textarea>
+
+                                    </div>
+
+                                    <div class="inline-edit-actions">
+
+                                        <button
+                                            class="primary-button"
+                                            type="submit"
+                                        >
+                                            Αποθήκευση
+                                        </button>
+
+                                        <button
+                                            class="secondary-button"
+                                            type="button"
+                                            onclick="toggleCategoryEdit('{{ category['id'] }}')"
+                                        >
+                                            Ακύρωση
+                                        </button>
+
+                                    </div>
+
+                                </form>{% endif %}
+
+                            </article>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="category-empty-state">
+
+                        <div class="category-empty-icon">
+                            +
+                        </div>
+
+                        <h3>
+                            Δεν υπάρχουν καταχωρισμένες κατηγορίες
+                        </h3>
+
+                        <p>
+                            Δημιουργήστε την πρώτη κατηγορία από τη φόρμα αριστερά.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script src="/static/js/categories-1.js"></script>
+
+</body>
+
+</html>

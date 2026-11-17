@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Χρέωση / Επιστροφή
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "checkout" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content">
+
+
+        <header class="topbar">
+
+            <div>
+
+                <h1>
+                    Χρέωση / Επιστροφή
+                </h1>
+
+                <p>
+                    Χρεώσεις σε Ομάδες Μετρήσεων και μεμονωμένες χρεώσεις εξοπλισμού
+                </p>
+
+            </div>
+
+
+            <a
+                class="secondary-button"
+                href="/teams"
+            >
+                Ομάδες Μετρήσεων
+            </a>
+
+        </header>
+
+
+        <div class="checkout-mode-tabs">
+
+            <button
+                class="checkout-mode-tab active"
+                id="missionsModeTab"
+                type="button"
+                onclick="switchCheckoutMode('missions')"
+            >
+                Χρέωση σε Ομάδα Μετρήσεων
+            </button>
+
+            <button
+                class="checkout-mode-tab"
+                id="individualModeTab"
+                type="button"
+                onclick="switchCheckoutMode('individual')"
+            >
+                Μεμονωμένες Χρεώσεις
+            </button>
+
+        </div>
+
+
+        <div
+            class="checkout-mode-panel"
+            id="individualModePanel"
+            style="display: none;"
+        >
+
+            
+
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Νέα Μεμονωμένη Χρέωση
+                        </h2>
+
+                        <p>
+                            Χρέωση ενός κομματιού εξοπλισμού
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <form
+                    class="search-form"
+                    method="get"
+                    action="/checkout-return"
+                >
+
+                    <input
+                        type="hidden"
+                        name="tab"
+                        value="individual"
+                    >
+
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ q }}"
+                        placeholder="Αναζήτηση σε περιγραφή, μοντέλο, S/N, Αρ. Μητρώου ΔΕΗ, Κωδικό ΤΕΜ, θέση..."
+                    >
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                    >
+                        Αναζήτηση
+                    </button>
+
+
+                    {% if q %}
+
+                        <a
+                            class="secondary-button"
+                            href="/checkout-return?tab=individual"
+                        >
+                            Καθαρισμός
+                        </a>
+
+                    {% endif %}
+
+                </form>
+
+
+                {% if q %}
+
+                    {% if available_equipment %}
+
+                        {% for item in available_equipment %}
+
+                            <div class="checkout-equipment-card">
+
+                                <div class="checkout-equipment-info">
+
+                                    <span class="detail-code">
+                                        {{ item["description"] }}
+                                    </span>
+
+                                    <h2>
+                                        {{ item["manufacturer"] or "" }}
+                                        {{ item["model"] or "" }}
+                                    </h2>
+
+                                    <p>
+                                        <strong>Serial Number:</strong>
+                                        {{ item["serial_number"] or "—" }}
+                                    </p>
+
+                                    <p>
+                                        <strong>Αρ. Μητρώου ΔΕΗ:</strong>
+                                        {{ item["dei_registry_number"] or "—" }}
+                                    </p>
+
+                                    <p>
+                                        <strong>Εσωτερικός Κωδικός ΤΕΜ:</strong>
+                                        {{ item["tem_internal_code"] or "—" }}
+                                    </p>
+
+                                    <p class="checkout-location-line">
+
+                                        <strong>Θέση:</strong>
+
+                                        {% if item["dexion"] or item["shelf"] or item["storage_column"] %}
+
+                                            {% if item["dexion"] %}
+                                                Dexion {{ item["dexion"] }}
+                                            {% endif %}
+
+                                            {% if item["shelf"] %}
+                                                / Ράφι {{ item["shelf"] }}
+                                            {% endif %}
+
+                                            {% if item["storage_column"] %}
+                                                / Στήλη {{ item["storage_column"] }}
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            {{ item["location"] or "—" }}
+
+                                        {% endif %}
+
+                                    </p>
+
+                                    <span class="status available">
+                                        Διαθέσιμο
+                                    </span>
+
+                                </div>
+
+
+                                <form
+                                    class="checkout-inline-form"
+                                    method="post"
+                                    action="/equipment/{{ item['id'] }}/checkout"
+                                >
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Ομάδα Μετρήσεων *
+                                        </label>
+
+                                        <select
+                                            name="borrower_name"
+                                            required
+                                        >
+
+                                            <option value="">
+                                                Επιλέξτε Ομάδα
+                                            </option>
+
+                                            {% for team in teams %}
+
+                                                <option value="{{ team['name'] }}">
+                                                    {{ team["name"] }}
+                                                </option>
+
+                                            {% endfor %}
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Μονάδα / Τομέας
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="borrower_unit"
+                                            value="{{ settings['default_unit'] if settings else '' }}"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Ημερομηνία Χρέωσης *
+                                        </label>
+
+                                        <input
+                                            class="today-date"
+                                            type="date"
+                                            name="checkout_date"
+                                            required
+                                        >
+
+                                    </div>
+
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Αναμενόμενη Επιστροφή
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="expected_return_date"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="form-field checkout-full-field">
+
+                                        <label>
+                                            Παρατηρήσεις Χρέωσης
+                                        </label>
+
+                                        <textarea
+                                            name="checkout_notes"
+                                            rows="3"
+                                        ></textarea>
+
+                                    </div>
+
+
+                                    <button
+                                        class="primary-button checkout-full-field"
+                                        type="submit"
+                                    >
+                                        Χρέωση Εξοπλισμού
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <p>
+                            Δεν βρέθηκε διαθέσιμος εξοπλισμός.
+                        </p>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <p class="checkout-empty-hint">
+                        Πληκτρολογήστε στοιχεία εξοπλισμού για αναζήτηση.
+                    </p>
+
+                {% endif %}
+
+            </section>
+
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Ενεργές Μεμονωμένες Χρεώσεις
+                        </h2>
+
+                        <p>
+                            Εξοπλισμός που βρίσκεται αυτή τη στιγμή σε χρήση
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {% if active_loans %}
+
+                    <div
+                        class="search-form"
+                        style="margin-bottom: 22px;"
+                    >
+
+                        <input
+                            id="active-loan-search"
+                            type="text"
+                            placeholder="Αναζήτηση ενεργής χρέωσης..."
+                        >
+
+                        <button
+                            class="secondary-button"
+                            type="button"
+                            onclick="clearActiveLoanSearch()"
+                        >
+                            Καθαρισμός
+                        </button>
+
+                    </div>
+
+
+                    <p
+                        id="no-active-results"
+                        style="display: none;"
+                    >
+                        Δεν βρέθηκε ενεργή χρέωση.
+                    </p>
+
+
+                    <div id="active-loans-container">
+
+                        {% for loan in active_loans %}
+
+                            <div
+                                class="checkout-equipment-card active-loan-card"
+                                data-search="
+                                    {{ loan['description'] or '' }}
+                                    {{ loan['manufacturer'] or '' }}
+                                    {{ loan['model'] or '' }}
+                                    {{ loan['serial_number'] or '' }}
+                                    {{ loan['dei_registry_number'] or '' }}
+                                    {{ loan['tem_internal_code'] or '' }}
+                                    {{ loan['borrower_name'] or '' }}
+                                    {{ loan['borrower_unit'] or '' }}
+                                "
+                            >
+
+                                <div class="checkout-equipment-info">
+
+                                    <span class="detail-code">
+                                        {{ loan["description"] }}
+                                    </span>
+
+                                    <h2>
+                                        {{ loan["manufacturer"] or "" }}
+                                        {{ loan["model"] or "" }}
+                                    </h2>
+
+                                    <p>
+                                        <strong>Serial Number:</strong>
+                                        {{ loan["serial_number"] or "—" }}
+                                    </p>
+
+                                    <p>
+                                        <strong>Ομάδα:</strong>
+                                        {{ loan["borrower_name"] }}
+                                    </p>
+
+                                    <p>
+                                        <strong>Ημερομηνία Χρέωσης:</strong>
+                                        {{ loan["checkout_date"] }}
+                                    </p>
+
+                                    <p>
+                                        <strong>Αναμενόμενη Επιστροφή:</strong>
+                                        {{ loan["expected_return_date"] or "—" }}
+                                    </p>
+
+                                    <span class="status usage">
+                                        Σε Χρήση
+                                    </span>
+
+                                </div>
+
+
+                                <form
+                                    class="checkout-return-form"
+                                    method="post"
+                                    action="/loans/{{ loan['id'] }}/return"
+                                >
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Ημερομηνία Επιστροφής *
+                                        </label>
+
+                                        <input
+                                            class="today-date"
+                                            type="date"
+                                            name="return_date"
+                                            required
+                                        >
+
+                                    </div>
+
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Παρατηρήσεις Επιστροφής
+                                        </label>
+
+                                        <textarea
+                                            name="return_notes"
+                                            rows="3"
+                                        ></textarea>
+
+                                    </div>
+
+
+                                    <button
+                                        class="primary-button"
+                                        type="submit"
+                                    >
+                                        Καταχώριση Επιστροφής
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p>
+                        Δεν υπάρχουν ενεργές ατομικές χρεώσεις.
+                    </p>
+
+                {% endif %}
+
+            </section>
+
+
+        </div>
+
+
+        <div
+            class="checkout-mode-panel"
+            id="missionsModePanel"
+        >
+
+
+<section class="panel mission-create-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Νέα Εκτός Έδρας Αποστολή
+                        </h2>
+
+                        <p>
+                            Δημιουργήστε πρώτα την αποστολή και μετά προσθέστε τον εξοπλισμό έναν-έναν
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <form
+                    class="mission-create-form"
+                    method="post"
+                    action="/missions/new"
+                >
+
+                    <div class="form-field">
+
+                        <label>
+                            Σταθμός / Προορισμός *
+                        </label>
+
+                        <select
+                            name="destination"
+                            required
+                        >
+
+                            <option value="">
+                                Επιλέξτε Σταθμό / Τοποθεσία
+                            </option>
+
+                            {% for destination in destinations %}
+
+                                <option value="{{ destination['name'] }}">
+                                    {{ destination["name"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Συνεργείο / Ομάδα *
+                        </label>
+
+                        <select
+                            name="team_name"
+                            required
+                        >
+
+                            <option value="">
+                                Επιλέξτε Ομάδα
+                            </option>
+
+                            {% for team in teams %}
+
+                                <option value="{{ team['name'] }}">
+                                    {{ team["name"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Ημερομηνία Αναχώρησης *
+                        </label>
+
+                        <input
+                            class="today-date"
+                            type="date"
+                            name="departure_date"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Όχημα
+                        </label>
+
+                        <select
+                            id="missionVehicleSelect"
+                            name="vehicle"
+                            onchange="syncMissionPlate()"
+                        >
+
+                            <option
+                                value=""
+                                data-plate=""
+                            >
+                                Επιλέξτε Όχημα
+                            </option>
+
+                            {% for vehicle in vehicles %}
+
+                                <option
+                                    value="{{ vehicle['model'] }}"
+                                    data-plate="{{ vehicle['license_plate'] }}"
+                                >
+                                    {{ vehicle["model"] }} · {{ vehicle["license_plate"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <input
+                            id="missionPlateInput"
+                            type="hidden"
+                            name="license_plate"
+                            value=""
+                        >
+
+                    </div>
+
+
+                    <div class="form-field mission-notes-field">
+
+                        <label>
+                            Παρατηρήσεις
+                        </label>
+
+                        <textarea
+                            name="notes"
+                            rows="3"
+                            placeholder="Προαιρετικές πληροφορίες για την αποστολή"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="mission-create-action">
+
+                        <button
+                            class="primary-button"
+                            type="submit"
+                        >
+                            Δημιουργία Αποστολής
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <section class="panel missions-overview-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Ενεργές Αποστολές
+                        </h2>
+
+                        <p>
+                            Εμφανίζονται μόνο αποστολές σε προετοιμασία ή σε εξέλιξη
+                        </p>
+
+                    </div>
+
+                    <div class="mission-history-count">
+                        {{ missions|length }} ενεργές
+                    </div>
+
+                </div>
+
+
+                {% if missions %}
+
+                    <div class="missions-overview-grid">
+
+                        {% for mission in missions %}
+
+                            <a
+                                class="mission-overview-card"
+                                href="/missions/{{ mission['id'] }}"
+                            >
+
+                                <div class="mission-list-item-top">
+
+                                    <strong>
+                                        {{ mission["mission_code"] or ("Αποστολή #" ~ mission["id"]) }}
+                                    </strong>
+
+                                    <span class="mission-status mission-status-{{ mission['status'] }}">
+                                        {{ mission["status"] }}
+                                    </span>
+
+                                </div>
+
+
+                                <span class="mission-list-destination">
+                                    {{ mission["destination"] }}
+                                </span>
+
+
+                                <span class="mission-list-meta">
+                                    {{ mission["team_name"] }}
+                                    ·
+                                    {{ mission["departure_date"]|date_gr }}
+                                </span>
+
+
+                                <div class="mission-overview-card-footer">
+
+                                    <span class="mission-list-progress">
+
+                                        {% if mission["total_items"] %}
+
+                                            {{ mission["returned_items"] or 0 }}/{{ mission["total_items"] }}
+                                            επιστράφηκαν
+
+                                        {% else %}
+
+                                            Χωρίς εξοπλισμό
+
+                                        {% endif %}
+
+                                    </span>
+
+                                    {% if mission["total_items"] %}
+                                        <div class="mission-card-progress">
+                                            <span style="width: {{ ((mission['returned_items'] or 0) * 100 / mission['total_items'])|round(0) }}%;"></span>
+                                        </div>
+                                    {% endif %}
+
+                                    <span class="mission-open-label">
+                                        Άνοιγμα →
+                                    </span>
+
+                                </div>
+
+                            </a>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="mission-empty-state">
+                        Δεν υπάρχουν ακόμη αποστολές.
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+
+        </div>
+
+
+    </main>
+
+</div>
+
+
+<script src="/static/js/checkout_return-1.js"></script>
+
+
+</body>
+
+</html>

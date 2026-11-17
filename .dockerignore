@@ -1,0 +1,12 @@
+.venv
+storage
+tests
+tools
+.git
+.env
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+migration_inventory.json
+README.md

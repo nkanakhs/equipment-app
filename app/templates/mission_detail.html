@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ selected_mission["mission_code"] or "Αποστολή" }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "checkout" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content">
+
+
+        <header class="topbar">
+
+            <div>
+
+                <h1>
+                    {{ selected_mission["destination"] }}
+                </h1>
+
+                <p>
+                    Χρέωση σε Ομάδα Μετρήσεων
+                </p>
+
+            </div>
+
+
+            <div class="mission-detail-top-actions">
+
+                <a
+                    class="secondary-button"
+                    href="/history/missions"
+                >
+                    ← Επιστροφή στο Ιστορικό
+                </a>
+
+                <form
+                    method="post"
+                    action="/missions/{{ selected_mission['id'] }}/delete"
+                    onsubmit="return confirm('Να διαγραφεί οριστικά αυτή η αποστολή; Η ενέργεια δεν αναιρείται.');"
+                >
+                    <button
+                        class="danger-button mission-delete-button"
+                        type="submit"
+                    >
+                        Διαγραφή Αποστολής
+                    </button>
+                </form>
+
+            </div>
+
+        </header>
+
+
+        <section class="panel mission-detail-page-panel">
+
+
+            <div class="mission-detail-header">
+
+                <div>
+
+                    <div class="mission-title-row">
+
+                        <span class="mission-code">
+                            {{ selected_mission["mission_code"] }}
+                        </span>
+
+                        <span class="mission-status mission-status-{{ selected_mission['status'] }}">
+                            {{ selected_mission["status"] }}
+                        </span>
+
+                    </div>
+
+                    <h2>
+                        {{ selected_mission["destination"] }}
+                    </h2>
+
+                    <p>
+                        {{ selected_mission["team_name"] }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="mission-summary-grid">
+
+                <div>
+                    <span>Αναχώρηση</span>
+                    <strong>{{ selected_mission["departure_date"]|date_gr }}</strong>
+                </div>
+
+                <div>
+                    <span>Όχημα</span>
+                    <strong>{{ selected_mission["vehicle"] or "—" }}</strong>
+                </div>
+
+                <div>
+                    <span>Πινακίδα</span>
+                    <strong>{{ selected_mission["license_plate"] or "—" }}</strong>
+                </div>
+
+            </div>
+
+
+            {% if selected_mission["notes"] %}
+
+                <div class="mission-notes-box">
+                    {{ selected_mission["notes"] }}
+                </div>
+
+            {% endif %}
+
+
+            {% if selected_mission["status"] in ["Προετοιμασία", "Ενεργή"] %}
+
+                <div class="mission-builder">
+
+                    <div class="mission-builder-heading">
+
+                        <div>
+
+                            <h3>
+                                Προσθήκη Εξοπλισμού
+                            </h3>
+
+                            <p>
+                                Αναζητήστε υλικά, επιλέξτε όσα θέλετε και προσθέστε τα όλα μαζί στην αποστολή
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="mission-picking-loader">
+                        <div class="mission-picking-loader-header">
+                            <div>
+                                <span class="form-section-kicker">PICKING LIST</span>
+                                <h3>Φόρτωση από Picking List</h3>
+                                <p>Επιλέξτε μια προετοιμασμένη λίστα και φορτώστε όλα τα διαθέσιμα υλικά απευθείας στην αποστολή.</p>
+                            </div>
+                        </div>
+
+                        <form class="mission-picking-selector" method="get" action="/missions/{{ selected_mission['id'] }}">
+                            <select name="picking_list_id" required>
+                                <option value="">Επιλέξτε Picking List</option>
+                                {% for pl in picking_lists %}
+                                    <option value="{{ pl['id'] }}" {% if picking_list_id == pl['id'] %}selected{% endif %}>
+                                        {{ pl['list_code'] }} — {{ pl['title'] }} ({{ pl['item_count'] }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button class="secondary-button" type="submit">Έλεγχος Λίστας</button>
+                        </form>
+
+                        {% if selected_picking_list %}
+                            <div class="mission-picking-summary">
+                                <div>
+                                    <strong>{{ selected_picking_list['list_code'] }} — {{ selected_picking_list['title'] }}</strong>
+                                    <span>{{ selected_picking_list['destination'] or '—' }} · {{ mission_picking_items|length }} υλικά</span>
+                                </div>
+                                <a class="secondary-button compact-button" href="/picking-lists?list_id={{ selected_picking_list['id'] }}">
+                                    Άνοιγμα Picking List
+                                </a>
+                            </div>
+
+                            <div class="mission-picking-items">
+                                {% set pick_ns = namespace(blocked=0) %}
+                                {% for e in mission_picking_items %}
+                                    {% if e['status'] != 'Διαθέσιμο' %}
+                                        {% set pick_ns.blocked = pick_ns.blocked + 1 %}
+                                    {% endif %}
+
+                                    <div class="mission-picking-row {% if e['status'] != 'Διαθέσιμο' %}blocked{% endif %}">
+                                        <div class="mission-picking-row-main">
+                                            <strong>{{ e['code'] }} — {{ e['description'] }}</strong>
+                                            <span>{{ e['manufacturer'] or '' }} {{ e['model'] or '' }}</span>
+                                        </div>
+
+                                        <span class="status {% if e['status']=='Διαθέσιμο' %}available{% else %}usage{% endif %}">
+                                            {{ e['status'] }}
+                                        </span>
+
+                                        {% if e['status'] != 'Διαθέσιμο' and e['available_alternative_id'] %}
+                                            <form method="post"
+                                                  action="/missions/{{ selected_mission['id'] }}/picking-list/{{ selected_picking_list['id'] }}/replace/{{ e['picking_item_id'] }}/{{ e['available_alternative_id'] }}">
+                                                <button class="secondary-button compact-button" type="submit">
+                                                    Χρήση {{ e['available_alternative_code'] }}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if pick_ns.blocked > 0 %}
+                                <div class="picking-checkout-warning">
+                                    {{ pick_ns.blocked }} υλικά δεν είναι διαθέσιμα.
+                                    {% if mission_picking_items|selectattr('available_alternative_id')|list %}
+                                        Χρησιμοποιήστε διαθέσιμη εναλλακτική όπου εμφανίζεται.
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <form method="post"
+                                  action="/missions/{{ selected_mission['id'] }}/picking-list/{{ selected_picking_list['id'] }}/load"
+                                  class="mission-picking-load-form"
+                                  onsubmit="return confirm('Να φορτωθούν τα υλικά αυτής της Picking List στην αποστολή;');">
+                                <button class="primary-button"
+                                        type="submit"
+                                        {% if pick_ns.blocked > 0 %}disabled title="Υπάρχουν μη διαθέσιμα υλικά"{% endif %}>
+                                    Φόρτωση στην Αποστολή
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <form
+                        class="mission-search-form"
+                        method="get"
+                        action="/missions/{{ selected_mission['id'] }}"
+                    >
+
+                        <input
+                            type="search"
+                            name="mission_q"
+                            value="{{ mission_q }}"
+                            placeholder="Περιγραφή, κατασκευαστής, μοντέλο, serial, κωδικός ΤΕΜ..."
+                        >
+
+                        <button
+                            class="secondary-button"
+                            type="submit"
+                        >
+                            Αναζήτηση
+                        </button>
+
+                    </form>
+
+
+                    {% if mission_q %}
+
+                        <div class="mission-search-results">
+
+                            {% if mission_available_equipment %}
+
+                                <form
+                                    method="post"
+                                    action="/missions/{{ selected_mission['id'] }}/items/add-bulk"
+                                    class="mission-bulk-form"
+                                    id="missionBulkAddForm"
+                                >
+
+                                    <div class="mission-bulk-toolbar">
+
+                                        <label class="mission-select-all">
+
+                                            <input
+                                                type="checkbox"
+                                                id="missionSelectAll"
+                                                onchange="toggleMissionSelection(this)"
+                                            >
+
+                                            <span>
+                                                Επιλογή όλων
+                                            </span>
+
+                                        </label>
+
+                                        <span
+                                            class="mission-selected-count"
+                                            id="missionSelectedCount"
+                                        >
+                                            0 επιλεγμένα
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="mission-bulk-list">
+
+                                        {% for item in mission_available_equipment %}
+
+                                            <label class="mission-bulk-item">
+
+                                                <input
+                                                    class="mission-equipment-checkbox"
+                                                    type="checkbox"
+                                                    name="equipment_ids"
+                                                    value="{{ item['id'] }}"
+                                                    onchange="updateMissionSelectionCount()"
+                                                >
+
+                                                <span class="mission-bulk-checkmark"></span>
+
+                                                <span class="mission-bulk-item-info">
+
+                                                    <strong>
+                                                        {{ item["description"] }}
+                                                    </strong>
+
+                                                    <span>
+                                                        {{ item["manufacturer"] or "" }}
+                                                        {{ item["model"] or "" }}
+
+                                                        {% if item["serial_number"] %}
+                                                            · S/N {{ item["serial_number"] }}
+                                                        {% endif %}
+
+                                                        {% if item["tem_internal_code"] %}
+                                                            · {{ item["tem_internal_code"] }}
+                                                        {% endif %}
+                                                    </span>
+
+                                                </span>
+
+                                            </label>
+
+                                        {% endfor %}
+
+                                    </div>
+
+
+                                    <div class="mission-bulk-actions">
+
+                                        <button
+                                            class="primary-button"
+                                            type="submit"
+                                            id="missionBulkAddButton"
+                                            disabled
+                                        >
+                                            Προσθήκη Επιλεγμένων
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            {% else %}
+
+                                <p class="mission-small-empty">
+                                    Δεν βρέθηκε διαθέσιμος εξοπλισμός.
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="mission-equipment-section">
+
+                <div class="mission-equipment-header">
+
+                    <div>
+
+                        <h3>
+                            Λίστα Εξοπλισμού
+                        </h3>
+
+                        <p>
+                            {{ mission_items|length }} αντικείμενα
+                        </p>
+
+                    </div>
+
+
+                    {% if selected_mission["status"] == "Προετοιμασία" and mission_items %}
+
+                        <form
+                            method="post"
+                            action="/missions/{{ selected_mission['id'] }}/start"
+                            onsubmit="return confirm('Να ξεκινήσει η αποστολή; Όλος ο εξοπλισμός της λίστας θα χρεωθεί ως Σε Αποστολή.');"
+                        >
+
+                            <button
+                                class="primary-button"
+                                type="submit"
+                            >
+                                Έναρξη Αποστολής
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if mission_items %}
+
+                    <div class="mission-equipment-photo-list">
+
+                        {% for item in mission_items %}
+
+                            <div class="mission-equipment-photo-card">
+
+
+                                <div class="mission-equipment-photo-wrap">
+
+                                    {% if item["equipment_photo"] %}
+
+                                        <img
+                                            src="/uploads/equipment/{{ item['equipment_photo'] }}"
+                                            alt="{{ item['description'] }}"
+                                            class="mission-equipment-photo"
+                                        >
+
+                                    {% else %}
+
+                                        <div class="mission-equipment-photo-placeholder">
+                                            Χωρίς φωτογραφία
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <div class="mission-equipment-main">
+
+                                    <strong>
+                                        {{ item["description"] }}
+                                    </strong>
+
+                                    <span>
+                                        {{ item["manufacturer"] or "" }}
+                                        {{ item["model"] or "" }}
+                                    </span>
+
+                                    <small>
+                                        S/N:
+                                        {{ item["serial_number"] or "—" }}
+                                        ·
+                                        Κωδ. ΤΕΜ:
+                                        {{ item["tem_internal_code"] or "—" }}
+                                    </small>
+
+                                </div>
+
+
+                                <div class="mission-equipment-state">
+
+                                    {% if item["status"] == "Προετοιμασία" %}
+
+                                        <span class="mission-item-pill draft">
+                                            Στη λίστα
+                                        </span>
+
+                                    {% elif item["status"] == "Σε Αποστολή" %}
+
+                                        <span class="mission-item-pill away">
+                                            Σε Αποστολή
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="mission-item-pill returned">
+                                            Επιστράφηκε
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <div class="mission-equipment-action">
+
+                                    {% if selected_mission["status"] == "Προετοιμασία" %}
+
+                                        <form
+                                            method="post"
+                                            action="/missions/{{ selected_mission['id'] }}/items/{{ item['id'] }}/remove"
+                                            onsubmit="return confirm('Να αφαιρεθεί αυτός ο εξοπλισμός από τη λίστα της αποστολής;');"
+                                        >
+
+                                            <button
+                                                class="mission-row-button danger"
+                                                type="submit"
+                                            >
+                                                Αφαίρεση
+                                            </button>
+
+                                        </form>
+
+                                    {% elif item["status"] == "Σε Αποστολή" %}
+
+                                        <form
+                                            class="mission-item-return-form"
+                                            method="post"
+                                            action="/missions/{{ selected_mission['id'] }}/items/{{ item['id'] }}/return"
+                                            onsubmit="return confirm('Να ξεχρεωθεί αυτό το υλικό και να επιστρέψει στα ράφια;');"
+                                        >
+
+                                            <input
+                                                class="today-date"
+                                                type="date"
+                                                name="return_date"
+                                                required
+                                            >
+
+                                            <input
+                                                type="text"
+                                                name="return_notes"
+                                                placeholder="Παρατήρηση (προαιρετικά)"
+                                            >
+
+                                            <button
+                                                class="mission-row-button"
+                                                type="submit"
+                                            >
+                                                Επιστροφή στα Ράφια
+                                            </button>
+
+                                        </form>
+
+                                    {% else %}
+
+                                        <span class="mission-return-date">
+                                            {{ item["returned_at"]|date_gr if item["returned_at"] else "" }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="mission-empty-state">
+                        Δεν έχει προστεθεί ακόμη εξοπλισμός στην αποστολή.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            {% if selected_mission["status"] == "Ενεργή" %}
+
+                <div class="mission-return-all-box">
+
+                    <div>
+
+                        <strong>
+                            Μαζική Επιστροφή
+                        </strong>
+
+                        <span>
+                            Ξεχρέωση όλων των υλικών που παραμένουν σε αποστολή
+                        </span>
+
+                    </div>
+
+
+                    <form
+                        class="mission-return-all-form"
+                        method="post"
+                        action="/missions/{{ selected_mission['id'] }}/return-all"
+                        onsubmit="return confirm('Να επιστραφούν ΟΛΑ τα υπόλοιπα υλικά της αποστολής στα ράφια;');"
+                    >
+
+                        <input
+                            class="today-date"
+                            type="date"
+                            name="return_date"
+                            required
+                        >
+
+                        <input
+                            type="text"
+                            name="return_notes"
+                            placeholder="Κοινή παρατήρηση (προαιρετικά)"
+                        >
+
+                        <button
+                            class="primary-button"
+                            type="submit"
+                        >
+                            Επιστροφή Όλων
+                        </button>
+
+                    </form>
+
+                </div>
+
+            {% endif %}
+
+
+        </section>
+
+
+    </main>
+
+
+</div>
+
+
+<script src="/static/js/mission_detail-1.js"></script>
+
+
+</body>
+
+</html>

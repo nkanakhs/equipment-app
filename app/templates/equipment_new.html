@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Νέα Καταχώριση
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "equipment_new" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content equipment-form-page">
+
+
+        <header class="topbar equipment-form-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Νέα Καταχώριση
+                </div>
+
+                <h1>
+                    Νέα Καταχώριση
+                </h1>
+
+                <p>
+                    Προσθήκη νέου εξοπλισμού στη βιβλιοθήκη
+                </p>
+
+            </div>
+
+
+            <a
+                class="secondary-button"
+                href="/equipment"
+            >
+                ← Επιστροφή στον Εξοπλισμό
+            </a>
+
+        </header>
+
+
+        <form
+            method="post"
+            action="/equipment/new"
+            enctype="multipart/form-data"
+            class="modern-equipment-form"
+        >
+
+
+            <section class="form-section-card">
+
+                <div class="form-section-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            01
+                        </span>
+
+                        <h2>
+                            Στοιχεία Ταυτοποίησης
+                        </h2>
+
+                        <p>
+                            Βασικά στοιχεία του εξοπλισμού και της καταχώρισης
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modern-form-grid">
+
+
+                    <div class="form-field form-field-wide">
+
+                        <label>
+                            Περιγραφή *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="description"
+                            required
+                            placeholder="π.χ. Αναλυτής Καυσαερίων"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Κατασκευαστής
+                        </label>
+
+                        <input
+                            type="text"
+                            name="manufacturer"
+                            placeholder="π.χ. MRU"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Μοντέλο
+                        </label>
+
+                        <input
+                            type="text"
+                            name="model"
+                            placeholder="π.χ. AIR"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Serial Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="serial_number"
+                            placeholder="Serial Number"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Αριθμός Μητρώου ΔΕΗ
+                        </label>
+
+                        <input
+                            type="text"
+                            name="dei_registry_number"
+                            placeholder="Αριθμός Μητρώου"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Εσωτερικός Κωδικός ΤΕΜ
+                        </label>
+
+                        <input
+                            type="text"
+                            name="tem_internal_code"
+                            placeholder="Εσωτερικός Κωδικός ΤΕΜ"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Κωδικός Εξοπλισμού *
+                        </label>
+
+                        <input
+                            type="text"
+                            name="code"
+                            required
+                            placeholder="π.χ. EQ-005"
+                        >
+
+                        <small class="field-help">
+                            Μοναδικός εσωτερικός κωδικός της εφαρμογής
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Κατηγορία
+                        </label>
+
+                        <select name="category">
+
+                            <option value="">
+                                Χωρίς Κατηγορία
+                            </option>
+
+                            {% for category in categories %}
+
+                                <option value="{{ category['name'] }}">
+                                    {{ category["name"] }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Κατάσταση
+                        </label>
+
+                        <select name="status">
+
+                            <option value="Διαθέσιμο">
+                                Διαθέσιμο
+                            </option>
+
+                            <option value="Σε Χρήση">
+                                Σε Χρήση
+                            </option>
+
+                            <option value="Σε Συντήρηση">
+                                Σε Συντήρηση
+                            </option>
+
+                            <option value="Εκτός Λειτουργίας">
+                                Εκτός Λειτουργίας
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Ποσότητα
+                        </label>
+
+                        <input
+                            type="number"
+                            name="quantity"
+                            min="1"
+                            value="1"
+                        >
+
+                        <span class="field-help">
+                            Για μεμονωμένο όργανο αφήστε 1. Για κωδικούς πολλαπλών τεμαχίων δηλώστε το συνολικό πλήθος.
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+            </section>
+
+
+            <section class="form-section-card">
+
+                <div class="form-section-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            02
+                        </span>
+
+                        <h2>
+                            Θέση Αποθήκευσης
+                        </h2>
+
+                        <p>
+                            Προσδιορισμός της φυσικής θέσης του εξοπλισμού
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="storage-form-grid">
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Dexion
+                        </label>
+
+                        <input
+                            list="dexion-list"
+                            type="text"
+                            name="dexion"
+                            placeholder="π.χ. 1"
+                        >
+
+                        <datalist id="dexion-list">
+
+                            {% for location in storage_locations %}
+
+                                {% if location["dexion"] %}
+
+                                    <option value="{{ location['dexion'] }}">
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </datalist>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Ράφι
+                        </label>
+
+                        <input
+                            list="shelf-list"
+                            type="text"
+                            name="shelf"
+                            placeholder="π.χ. A"
+                        >
+
+                        <datalist id="shelf-list">
+
+                            {% for location in storage_locations %}
+
+                                {% if location["shelf"] %}
+
+                                    <option value="{{ location['shelf'] }}">
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </datalist>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Στήλη
+                        </label>
+
+                        <input
+                            list="column-list"
+                            type="text"
+                            name="storage_column"
+                            placeholder="π.χ. 1"
+                        >
+
+                        <datalist id="column-list">
+
+                            {% for location in storage_locations %}
+
+                                {% if location["storage_column"] %}
+
+                                    <option value="{{ location['storage_column'] }}">
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </datalist>
+
+                    </div>
+
+
+                </div>
+
+            </section>
+
+
+            <section class="form-section-card">
+
+                <div class="form-section-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            03
+                        </span>
+
+                        <h2>
+                            Φωτογραφικό Υλικό
+                        </h2>
+
+                        <p>
+                            Προαιρετική φωτογραφία εξοπλισμού και θέσης αποθήκευσης
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="upload-grid">
+
+
+                    <label class="upload-card">
+
+                        <span class="upload-card-icon">
+                            EQ
+                        </span>
+
+                        <span class="upload-card-title">
+                            Φωτογραφία Εξοπλισμού
+                        </span>
+
+                        <span class="upload-card-text">
+                            JPG, JPEG, PNG ή WEBP
+                        </span>
+
+                        <input
+                            type="file"
+                            name="equipment_photo"
+                            accept="image/*"
+                        >
+
+                    </label>
+
+
+                    <label class="upload-card">
+
+                        <span class="upload-card-icon">
+                            LOC
+                        </span>
+
+                        <span class="upload-card-title">
+                            Φωτογραφία Θέσης
+                        </span>
+
+                        <span class="upload-card-text">
+                            Φωτογραφία Dexion / ραφιού / στήλης
+                        </span>
+
+                        <input
+                            type="file"
+                            name="location_photo"
+                            accept="image/*"
+                        >
+
+                    </label>
+
+
+                </div>
+
+            </section>
+
+
+            <section class="form-section-card">
+
+                <div class="form-section-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            04
+                        </span>
+
+                        <h2>
+                            Παρατηρήσεις
+                        </h2>
+
+                        <p>
+                            Συμπληρωματικές πληροφορίες για τον εξοπλισμό
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <textarea
+                        name="notes"
+                        rows="5"
+                        placeholder="Προαιρετικές παρατηρήσεις για τον εξοπλισμό..."
+                    ></textarea>
+
+                </div>
+
+            </section>
+
+
+            <div class="modern-form-actions">
+
+                <a
+                    class="secondary-button"
+                    href="/equipment"
+                >
+                    Ακύρωση
+                </a>
+
+                <button
+                    class="primary-button save-equipment-button"
+                    type="submit"
+                >
+                    Αποθήκευση Καταχώρισης
+                </button>
+
+            </div>
+
+
+        </form>
+
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

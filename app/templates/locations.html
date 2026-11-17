@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Θέσεις Αποθήκευσης
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-container">
+
+
+    {% set active_page = "locations" %}
+    {% include "_sidebar.html" %}
+
+
+    <main class="main-content locations-page">
+
+
+        <header class="topbar locations-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Θέσεις Αποθήκευσης
+                </div>
+
+                <h1>
+                    Θέσεις Αποθήκευσης
+                </h1>
+
+                <p>
+                    Διαχείριση θέσεων Dexion, Ραφιών και Στηλών
+                </p>
+
+            </div>
+
+        </header>
+
+        {% if request.state.current_user and request.state.current_user["role"] == "USER" %}
+        <div class="readonly-banner">
+            <strong>Προβολή μόνο</strong>
+            <span>Ο λογαριασμός USER δεν έχει δικαίωμα δημιουργίας, επεξεργασίας ή διαγραφής σε αυτή την ενότητα.</span>
+        </div>
+        {% endif %}
+
+
+
+        <section class="locations-layout">
+
+
+            <section class="location-create-card">
+
+                <div class="location-card-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            SECTION
+                        </span>
+
+                        <h2>
+                            Νέα Θέση
+                        </h2>
+
+                        <p>
+                            Προσθέστε νέα θέση αποθήκευσης
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                    method="post"
+                    action="/locations/new"
+                    class="location-create-form"
+                >
+
+                    <div class="location-fields-grid">
+
+                        <div class="form-field">
+
+                            <label>
+                                Dexion *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="dexion"
+                                required
+                                placeholder="π.χ. ΠΕΡ-04Β"
+                            >
+
+                        </div>
+
+                        <div class="form-field">
+
+                            <label>
+                                Ράφι *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="shelf"
+                                required
+                                placeholder="π.χ. ΕΠΙΠΕΔΟ 02"
+                            >
+
+                        </div>
+
+                        <div class="form-field">
+
+                            <label>
+                                Στήλη *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="storage_column"
+                                required
+                                placeholder="π.χ. ΣΤΗΛΗ 01"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            Περιγραφή
+                        </label>
+
+                        <textarea
+                            name="description"
+                            rows="4"
+                            placeholder="π.χ. Όργανα ηλεκτρικών μετρήσεων"
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        class="primary-button location-submit-button"
+                        type="submit"
+                    >
+                        Προσθήκη Θέσης
+                    </button>
+
+                </form>{% endif %}
+
+            </section>
+
+
+            <section class="location-list-card">
+
+                <div class="location-card-header location-list-header">
+
+                    <div>
+
+                        <span class="form-section-kicker">
+                            SECTION
+                        </span>
+
+                        <h2>
+                            Καταχωρισμένες Θέσεις
+                        </h2>
+
+                        <p>
+                            Επεξεργασία δομής Dexion → Ράφι → Στήλη
+                        </p>
+
+                    </div>
+
+
+                    {% if storage_locations %}
+
+                        <div class="location-count-badge">
+                            {{ storage_locations|length }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if storage_locations %}
+
+                    <div class="location-list">
+
+                        {% for location in storage_locations %}
+
+                            <article class="location-list-item location-editable-item">
+
+                                <div class="location-main-info">
+
+                                    <div class="location-marker-box">
+                                        D{{ location["dexion"] }}
+                                    </div>
+
+                                    <div class="location-text-block">
+
+                                        <div class="location-path">
+
+                                            <span>
+                                                Dexion {{ location["dexion"] }}
+                                            </span>
+
+                                            <span class="location-arrow">
+                                                ›
+                                            </span>
+
+                                            <span>
+                                                Ράφι {{ location["shelf"] }}
+                                            </span>
+
+                                            <span class="location-arrow">
+                                                ›
+                                            </span>
+
+                                            <span>
+                                                Στήλη {{ location["storage_column"] }}
+                                            </span>
+
+                                        </div>
+
+                                        <h3>
+                                            Dexion {{ location["dexion"] }}
+                                            / Ράφι {{ location["shelf"] }}
+                                            / Στήλη {{ location["storage_column"] }}
+                                        </h3>
+
+                                        <p>
+                                            {{ location["description"] or "Χωρίς περιγραφή" }}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="location-item-actions">
+
+                                    {% if location["active"] == 1 %}
+
+                                        <span class="status available">
+                                            Ενεργή
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status neutral-status">
+                                            Ανενεργή
+                                        </span>
+
+                                    {% endif %}
+
+
+                                    <button
+                                        class="location-edit-button"
+                                        type="button"
+                                        onclick="toggleLocationEdit('{{ location['id'] }}')"
+                                    >
+                                        Επεξεργασία
+                                    </button>
+
+
+                                    {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                        method="post"
+                                        action="/locations/{{ location['id'] }}/delete"
+                                        onsubmit="return confirm('Να διαγραφεί η θέση αποθήκευσης;');"
+                                    >
+
+                                        <button
+                                            class="location-delete-button"
+                                            type="submit"
+                                        >
+                                            Διαγραφή
+                                        </button>
+
+                                    </form>{% endif %}
+
+                                </div>
+
+
+                                {% if request.state.current_user and request.state.current_user["role"] == "ADMIN" %}<form
+                                    method="post"
+                                    action="/locations/{{ location['id'] }}/edit"
+                                    class="inline-edit-form location-inline-edit"
+                                    id="locationEdit{{ location['id'] }}"
+                                    hidden
+                                >
+
+                                    <div class="location-inline-grid">
+
+                                        <div class="form-field">
+
+                                            <label>
+                                                Dexion
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="dexion"
+                                                value="{{ location['dexion'] }}"
+                                                required
+                                            >
+
+                                        </div>
+
+                                        <div class="form-field">
+
+                                            <label>
+                                                Ράφι
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="shelf"
+                                                value="{{ location['shelf'] }}"
+                                                required
+                                            >
+
+                                        </div>
+
+                                        <div class="form-field">
+
+                                            <label>
+                                                Στήλη
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="storage_column"
+                                                value="{{ location['storage_column'] }}"
+                                                required
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="form-field">
+
+                                        <label>
+                                            Περιγραφή
+                                        </label>
+
+                                        <textarea
+                                            name="description"
+                                            rows="2"
+                                        >{{ location["description"] or "" }}</textarea>
+
+                                    </div>
+
+                                    <div class="inline-edit-actions">
+
+                                        <button
+                                            class="primary-button"
+                                            type="submit"
+                                        >
+                                            Αποθήκευση
+                                        </button>
+
+                                        <button
+                                            class="secondary-button"
+                                            type="button"
+                                            onclick="toggleLocationEdit('{{ location['id'] }}')"
+                                        >
+                                            Ακύρωση
+                                        </button>
+
+                                    </div>
+
+                                </form>{% endif %}
+
+                            </article>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="location-empty-state">
+
+                        <div class="location-empty-icon">
+                            +
+                        </div>
+
+                        <h3>
+                            Δεν υπάρχουν καταχωρισμένες θέσεις
+                        </h3>
+
+                        <p>
+                            Δημιουργήστε την πρώτη θέση αποθήκευσης από τη φόρμα αριστερά.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script src="/static/js/locations-1.js"></script>
+
+</body>
+
+</html>

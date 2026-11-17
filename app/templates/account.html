@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ο λογαριασμός μου</title>
+<link rel="stylesheet" href="/static/style.css?v=1600">
+</head>
+<body>
+<div class="app-container">
+{% set active_page = "account" %}
+{% include "_sidebar.html" %}
+<main class="main-content">
+<header class="topbar"><div><h1>Ο λογαριασμός μου</h1><p>Στοιχεία σύνδεσης και ασφάλεια</p></div></header>
+<section class="panel account-profile-card">
+    <div class="account-avatar">{{ current_user['full_name'][:1]|upper }}</div>
+    <div><h2>{{ current_user['full_name'] }}</h2><p>@{{ current_user['username'] }}</p>
+    <span class="role-badge role-{{ current_user['role']|lower }}">{{ current_user['role'] }}</span></div>
+</section>
+<section class="panel">
+<div class="panel-header"><div><h2>Αλλαγή Κωδικού</h2><p>Μετά την αλλαγή θα χρειαστεί νέα σύνδεση.</p></div></div>
+<form method="post" action="/account/password" class="form-grid">
+<div class="form-field"><label>Τρέχων κωδικός</label><input type="password" name="current_password" required></div>
+<div class="form-field"><label>Νέος κωδικός</label><input type="password" name="new_password" minlength="8" required></div>
+<div class="form-field"><label>Επιβεβαίωση νέου κωδικού</label><input type="password" name="new_password_confirm" minlength="8" required></div>
+<div><button class="primary-button" type="submit">Αλλαγή Κωδικού</button></div>
+</form>
+</section>
+</main>
+</div>
+</body>
+</html>

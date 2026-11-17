@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>403 — Πρόσβαση</title>
+<link rel="stylesheet" href="/static/style.css?v=1600">
+</head>
+<body>
+<div class="app-container">
+{% set active_page = "" %}
+{% include "_sidebar.html" %}
+<main class="main-content">
+    <section class="permission-denied-card">
+        <span>403</span>
+        <h1>Δεν έχετε δικαίωμα πρόσβασης</h1>
+        <p>Η συγκεκριμένη λειτουργία είναι διαθέσιμη μόνο σε εξουσιοδοτημένο επίπεδο χρήστη.</p>
+        <a class="primary-button" href="/">Επιστροφή στο Dashboard</a>
+    </section>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="el">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Picking Lists</title><link rel="stylesheet" href="/static/style.css?v=1600"></head>
+<body>
+<div class="app-container">
+{% set active_page = "picking_lists" %}{% include "_sidebar.html" %}
+<main class="main-content picking-page">
+<header class="topbar"><div><div class="breadcrumb">Βιβλιοθήκη Εξοπλισμού / Picking List</div><h1>Picking Lists</h1><p>Προετοιμασία υλικών για επόμενα ταξίδια και εργασίες πεδίου</p></div></header>
+
+<section class="picking-layout">
+<aside class="panel picking-list-index">
+<div class="panel-header"><div><h2>Λίστες</h2><p>Αποθηκευμένες λίστες προετοιμασίας</p></div></div>
+<form class="picking-create-form" method="post" action="/picking-lists/new">
+<div class="form-field"><label>Τίτλος *</label><input name="title" required placeholder="π.χ. Μετρήσεις Μεγαλόπολης"></div>
+<div class="form-field"><label>Προορισμός</label><input name="destination"></div>
+<div class="form-field"><label>Ημερομηνία ταξιδιού</label><input name="travel_date" type="date"></div>
+<div class="form-field"><label>Ομάδα</label><input name="team_name"></div>
+<div class="form-field"><label>Σημειώσεις</label><textarea name="notes" rows="2"></textarea></div>
+<button class="primary-button" type="submit">+ Νέα Picking List</button>
+</form>
+<div class="picking-index-items">
+{% for pl in lists %}
+<a class="picking-index-item {% if selected and selected['id']==pl['id'] %}active{% endif %}" href="/picking-lists?list_id={{ pl['id'] }}">
+<strong>{{ pl['list_code'] }} · {{ pl['title'] }}</strong><span>{{ pl['destination'] or 'Χωρίς προορισμό' }} · {{ pl['item_count'] }} υλικά</span><small>{{ pl['status'] }}</small>
+</a>
+{% else %}<p class="mission-small-empty">Δεν υπάρχουν Picking Lists.</p>{% endfor %}
+</div>
+</aside>
+
+<section class="panel picking-editor">
+{% if selected %}
+<div class="picking-print-header"><div><span class="form-section-kicker">{{ selected['list_code'] }}</span><h2>{{ selected['title'] }}</h2><p>{{ selected['destination'] or '—' }}{% if selected['travel_date'] %} · {{ selected['travel_date'] }}{% endif %}</p></div><button class="secondary-button no-print" type="button" onclick="window.print()">Εκτύπωση</button></div>
+
+<form class="picking-meta-form no-print" method="post" action="/picking-lists/{{ selected['id'] }}/update">
+<div class="form-field"><label>Τίτλος</label><input name="title" value="{{ selected['title'] }}" required></div>
+<div class="form-field"><label>Προορισμός</label><input name="destination" value="{{ selected['destination'] or '' }}"></div>
+<div class="form-field"><label>Ημερομηνία</label><input type="date" name="travel_date" value="{{ selected['travel_date'] or '' }}"></div>
+<div class="form-field"><label>Ομάδα</label><input name="team_name" value="{{ selected['team_name'] or '' }}"></div>
+<div class="form-field"><label>Κατάσταση</label><select name="status"><option {% if selected['status']=='Draft' %}selected{% endif %}>Draft</option><option {% if selected['status']=='Έτοιμη' %}selected{% endif %}>Έτοιμη</option><option {% if selected['status']=='Χρησιμοποιήθηκε' %}selected{% endif %}>Χρησιμοποιήθηκε</option></select></div>
+<div class="form-field picking-notes"><label>Σημειώσεις</label><textarea name="notes" rows="2">{{ selected['notes'] or '' }}</textarea></div>
+<button class="secondary-button" type="submit">Αποθήκευση στοιχείων</button>
+</form>
+
+<div class="picking-print-meta"><span><strong>Προορισμός:</strong> {{ selected['destination'] or '—' }}</span><span><strong>Ημερομηνία:</strong> {{ selected['travel_date'] or '—' }}</span><span><strong>Ομάδα:</strong> {{ selected['team_name'] or '—' }}</span></div>
+
+<div class="no-print picking-search-block">
+<form class="search-form" method="get" action="/picking-lists"><input type="hidden" name="list_id" value="{{ selected['id'] }}"><input name="q" value="{{ q }}" placeholder="Αναζήτηση εξοπλισμού για προσθήκη..."><button class="primary-button">Αναζήτηση</button></form>
+{% if q %}<div class="picking-search-results">{% for e in search_results %}<div class="picking-search-result"><div><strong>{{ e['code'] }} — {{ e['description'] }}</strong><span>{{ e['manufacturer'] or '' }} {{ e['model'] or '' }} · {{ e['status'] }}</span></div><button type="button" class="secondary-button compact-button picking-add-button" data-equipment-id="{{ e['id'] }}">Προσθήκη</button></div>{% else %}<p>Δεν βρέθηκε εξοπλισμός.</p>{% endfor %}</div>{% endif %}
+</div>
+
+<div class="picking-table-wrap">
+<table class="picking-table"><thead><tr><th>#</th><th>Κωδικός</th><th>Περιγραφή</th><th>Κατασκευαστής / Μοντέλο</th><th>ΑΜ ΔΕΗ</th><th>Θέση</th><th>Διαθεσιμότητα</th><th class="print-check">✓</th><th class="no-print">Ενέργεια</th></tr></thead><tbody>
+{% for e in items %}<tr class="{% if e['status']!='Διαθέσιμο' %}picking-unavailable-row{% endif %}"><td>{{ loop.index }}</td><td>{{ e['code'] }}</td><td>{{ e['description'] }}</td><td>{{ e['manufacturer'] or '—' }} {{ e['model'] or '' }}</td><td>{{ e['dei_registry_number'] or '—' }}</td><td>{{ e['location'] or '—' }}</td><td><span class="status {% if e['status']=='Διαθέσιμο' %}available{% elif e['status']=='Σε Χρήση' %}usage{% endif %}">{{ e['status'] }}</span></td><td class="print-check">□</td><td class="no-print"><form method="post" action="/picking-lists/{{ selected['id'] }}/items/{{ e['picking_item_id'] }}/delete"><button class="mission-row-button danger">Αφαίρεση</button></form></td></tr>{% else %}<tr><td colspan="9">Η λίστα είναι κενή.</td></tr>{% endfor %}
+</tbody></table>
+</div>
+{% else %}<div class="mission-empty-detail"><strong>Επιλέξτε ή δημιουργήστε Picking List</strong><span>Η λίστα μπορεί να εκτυπωθεί και αργότερα να φορτωθεί απευθείας στη Χρέωση.</span></div>{% endif %}
+</section>
+</section>
+</main></div>
+
+<div class="picking-availability-modal" id="pickingAvailabilityModal"><div class="picking-availability-dialog"><button type="button" class="equipment-lightbox-close" id="pickModalClose">×</button><span class="form-section-kicker">ΕΛΕΓΧΟΣ ΔΙΑΘΕΣΙΜΟΤΗΤΑΣ</span><h2 id="pickModalTitle">Το υλικό δεν είναι διαθέσιμο</h2><p id="pickModalMessage"></p><div id="pickModalAlternative"></div></div></div>
+<script>
+(function(){
+ const listId={{ selected['id'] if selected else 'null' }}; if(!listId)return;
+ const modal=document.getElementById('pickingAvailabilityModal'),msg=document.getElementById('pickModalMessage'),alt=document.getElementById('pickModalAlternative');
+ function close(){modal.classList.remove('is-open');} document.getElementById('pickModalClose').addEventListener('click',close); modal.addEventListener('click',e=>{if(e.target===modal)close();});
+ document.querySelectorAll('.picking-add-button').forEach(btn=>btn.addEventListener('click',async()=>{
+   const id=btn.dataset.equipmentId; btn.disabled=true;
+   try{const r=await fetch(`/api/picking-lists/${listId}/items/${id}`,{method:'POST'}); const d=await r.json();
+     if(r.ok&&d.ok){location.href=`/picking-lists?list_id=${listId}&toast=${encodeURIComponent(d.message)}`;return;}
+     msg.textContent=d.message||'Το υλικό δεν είναι διαθέσιμο.'; alt.innerHTML='';
+     if(d.alternative){const box=document.createElement('div');box.className='picking-alternative-suggestion';box.innerHTML=`<span>Προτεινόμενη εναλλακτική</span><strong>${d.alternative.code} — ${d.alternative.description}</strong><button type="button" class="primary-button">Χρήση εναλλακτικής</button>`;box.querySelector('button').addEventListener('click',async()=>{const rr=await fetch(`/api/picking-lists/${listId}/items/${d.alternative.id}`,{method:'POST'});if(rr.ok) location.href=`/picking-lists?list_id=${listId}`;});alt.appendChild(box);}
+     modal.classList.add('is-open');
+   }catch(e){console.error(e);}finally{btn.disabled=false;}
+ }));
+})();
+</script>
+</body></html>

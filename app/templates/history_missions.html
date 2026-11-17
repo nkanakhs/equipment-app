@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Εκτός Έδρας Χρεώσεις
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=1600"
+    >
+
+</head>
+
+<body>
+
+<div class="app-container">
+
+    {% set active_page = "history" %}
+    {% include "_sidebar.html" %}
+
+    <main class="main-content history-page">
+
+        <header class="topbar history-topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Βιβλιοθήκη Εξοπλισμού / Ιστορικό Κινήσεων
+                </div>
+
+                <h1>
+                    Εκτός Έδρας Χρεώσεις
+                </h1>
+
+                <p>
+                    Ιστορικό αποστολών εξοπλισμού σε Σταθμούς και Ομάδες Μετρήσεων
+                </p>
+
+            </div>
+
+            <div class="topbar-actions">
+
+                <a
+                    class="secondary-button"
+                    href="/checkout-return"
+                >
+                    Χρέωση / Επιστροφή
+                </a>
+
+                <button
+                    class="primary-button"
+                    type="button"
+                    id="historyExportToggle"
+                    onclick="toggleHistoryExportMode()"
+                >
+                    Export
+                </button>
+
+            </div>
+
+        </header>
+
+        <nav class="history-section-tabs">
+
+            <a
+                class="history-section-tab active"
+                href="/history/missions"
+            >
+                Εκτός Έδρας Χρεώσεις
+            </a>
+
+            <a
+                class="history-section-tab"
+                href="/history/individual"
+            >
+                Μεμονωμένες Χρεώσεις
+            </a>
+
+        </nav>
+
+        <section class="panel history-filter-panel">
+
+            <form
+                class="history-filter-form history-filter-form-missions"
+                method="get"
+                action="/history/missions"
+            >
+
+                <div class="history-filter-field">
+
+                    <label for="historyDestination">
+                        Σταθμός / Προορισμός
+                    </label>
+
+                    <select
+                        id="historyDestination"
+                        name="destination"
+                    >
+
+                        <option value="">
+                            Όλοι οι Σταθμοί
+                        </option>
+
+                        {% for item in destinations %}
+
+                            <option
+                                value="{{ item['destination'] }}"
+                                {% if selected_destination == item['destination'] %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item["destination"] }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="history-filter-field">
+
+                    <label for="historyTeam">
+                        Ομάδα Μετρήσεων
+                    </label>
+
+                    <select
+                        id="historyTeam"
+                        name="team"
+                    >
+
+                        <option value="">
+                            Όλες οι Ομάδες
+                        </option>
+
+                        {% for item in teams %}
+
+                            <option
+                                value="{{ item['team_name'] }}"
+                                {% if selected_team == item['team_name'] %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item["team_name"] }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="history-filter-field">
+
+                    <label for="historyYear">
+                        Χρονολογικό Έτος
+                    </label>
+
+                    <select
+                        id="historyYear"
+                        name="year"
+                    >
+
+                        <option value="">
+                            Όλα τα Έτη
+                        </option>
+
+                        {% for item in years %}
+
+                            <option
+                                value="{{ item['year_value'] }}"
+                                {% if selected_year == item['year_value'] %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item["year_value"] }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="history-filter-actions">
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                    >
+                        Εφαρμογή Φίλτρων
+                    </button>
+
+                    <a
+                        class="secondary-button"
+                        href="/history/missions"
+                    >
+                        Καθαρισμός
+                    </a>
+
+                </div>
+
+            </form>
+
+        </section>
+        {% if selected_destination or selected_team or selected_year %}
+            <div class="active-filter-strip">
+                <strong>Ενεργά φίλτρα:</strong>
+                {% if selected_destination %}<span class="active-filter-chip">{{ selected_destination }}</span>{% endif %}
+                {% if selected_team %}<span class="active-filter-chip">{{ selected_team }}</span>{% endif %}
+                {% if selected_year %}<span class="active-filter-chip">{{ selected_year }}</span>{% endif %}
+                <a class="active-filter-clear" href="/history/missions">Καθαρισμός</a>
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            action="/history/export-selected"
+            id="historyExportForm"
+        >
+
+            <section class="panel mission-history-panel">
+
+                <div class="panel-header history-uniform-header">
+
+                    <div>
+
+                        <h2>
+                            Αποστολές
+                        </h2>
+
+                        <p>
+                            {{ total_count }} εγγραφές με τα επιλεγμένα φίλτρα
+                        </p>
+
+                    </div>
+
+                    <div class="mission-history-count">
+                        {{ total_count }} χρεώσεις
+                    </div>
+
+                </div>
+
+                {% if mission_history %}
+
+                    <div class="table-container">
+
+                        <table class="mission-history-table history-table">
+
+                            <thead>
+
+                                <tr>
+                                    <th class="history-export-column">Επιλογή</th>
+                                    <th>Αποστολή</th>
+                                    <th>Σταθμός / Προορισμός</th>
+                                    <th>Ομάδα</th>
+                                    <th>Όχημα</th>
+                                    <th>Πινακίδα</th>
+                                    <th>Αναχώρηση</th>
+                                    <th>Εξοπλισμός</th>
+                                    <th>Σε Αποστολή</th>
+                                    <th>Κατάσταση</th>
+                                    <th>Ενέργεια</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for mission in mission_history %}
+
+                                    <tr>
+
+                                        <td class="history-export-column">
+
+                                            <input
+                                                class="history-export-checkbox"
+                                                type="checkbox"
+                                                name="selected_items"
+                                                value="mission:{{ mission['id'] }}"
+                                                onchange="updateHistoryExportCount()"
+                                            >
+
+                                        </td>
+
+                                        <td>
+                                            <strong class="history-team">
+                                                {{ mission["mission_code"] or ("Αποστολή #" ~ mission["id"]) }}
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            {{ mission["destination"] }}
+                                        </td>
+
+                                        <td>
+                                            {{ mission["team_name"] }}
+                                        </td>
+
+                                        <td>
+                                            {{ mission["vehicle"] or "—" }}
+                                        </td>
+
+                                        <td>
+                                            <span class="mono-value">
+                                                {{ mission["license_plate"] or "—" }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <span class="history-date">
+                                                {{ mission["departure_date"]|date_gr }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <div class="mission-progress-cell">
+                                                <div class="mission-progress-text">
+                                                    <strong>{{ mission["returned_items"] or 0 }}/{{ mission["total_items"] or 0 }}</strong>
+                                                    επιστράφηκαν
+                                                </div>
+                                                <div class="mission-progress-track">
+                                                    <span
+                                                        class="mission-progress-fill"
+                                                        style="width: {% if mission['total_items'] %}{{ ((mission['returned_items'] or 0) * 100 / mission['total_items'])|round(0) }}{% else %}0{% endif %}%;"
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <strong>
+                                                {{ mission["active_items"] or 0 }}
+                                            </strong>
+                                        </td>
+
+                                        <td>
+
+                                            {% if mission["status"] == "Προετοιμασία" %}
+
+                                                <span class="status neutral-status">
+                                                    Προετοιμασία
+                                                </span>
+
+                                            {% elif mission["status"] == "Ενεργή" %}
+
+                                                <span class="status usage">
+                                                    Ενεργή
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="status returned-status">
+                                                    Ολοκληρωμένη
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td>
+
+                                            <a
+                                                class="secondary-button mission-history-open"
+                                                href="/missions/{{ mission['id'] }}"
+                                            >
+                                                Προβολή
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="history-empty-state">
+
+                        <h3>
+                            Δεν βρέθηκαν αποστολές
+                        </h3>
+
+                        <p>
+                            Δοκίμασε διαφορετικό συνδυασμό φίλτρων.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+            {% if total_pages > 1 %}
+                <nav class="app-pagination history-pagination">
+                    <span class="app-pagination-summary">
+                        Σελίδα {{ page }} από {{ total_pages }} · {{ total_count }} εγγραφές
+                    </span>
+                    <div class="app-pagination-buttons">
+                        {% if page > 1 %}
+                            <a class="secondary-button pagination-button"
+                               href="{{ request.url.include_query_params(page=page-1) }}">← Προηγούμενη</a>
+                        {% endif %}
+                        {% for page_number in range(1, total_pages + 1) %}
+                            {% if page_number == 1 or page_number == total_pages or (page_number >= page - 2 and page_number <= page + 2) %}
+                                <a class="pagination-number {% if page_number == page %}active{% endif %}"
+                                   href="{{ request.url.include_query_params(page=page_number) }}">{{ page_number }}</a>
+                            {% elif page_number == page - 3 or page_number == page + 3 %}
+                                <span class="pagination-ellipsis">…</span>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page < total_pages %}
+                            <a class="secondary-button pagination-button"
+                               href="{{ request.url.include_query_params(page=page+1) }}">Επόμενη →</a>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+
+            <div
+                class="history-export-bar"
+                id="historyExportBar"
+                style="display: none;"
+            >
+
+                <div>
+
+                    <strong id="historyExportCount">
+                        0 επιλεγμένες
+                    </strong>
+
+                    <span>
+                        Οι εκτός έδρας χρεώσεις εξάγονται αναλυτικά ανά αντικείμενο.
+                    </span>
+
+                </div>
+
+                <div class="history-export-actions">
+
+                    <button
+                        class="secondary-button"
+                        type="button"
+                        onclick="cancelHistoryExport()"
+                    >
+                        Ακύρωση
+                    </button>
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                        id="historyExportSubmit"
+                        disabled
+                    >
+                        Εξαγωγή Επιλεγμένων
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </main>
+
+</div>
+
+
+<script src="/static/js/history_missions-1.js"></script>
+
+
+</body>
+
+</html>
